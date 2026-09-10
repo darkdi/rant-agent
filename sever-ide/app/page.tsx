@@ -2,7 +2,6 @@
 import { isLocalEndpoint, needsApiKey } from '@/lib/model-connection';
 import MediaStudio from '@/components/media-studio';
 import { ImagePlus, Video } from 'lucide-react';
-import { BrandMark } from '@/components/brand-logo';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   MessageCircle,
@@ -872,7 +871,7 @@ export default function Home() {
           >
             {!state.runs.length && !run && (
               <div className="chat-welcome">
-                <div className="welcome-symbol"><BrandMark /></div>
+                <div className="welcome-symbol"><RantCharacter /><span className="welcome-spark" aria-hidden="true">✦</span></div>
                 <h1>Что сделаем <span>сегодня?</span></h1>
                 <p className="intro">
                   Твои идеи. Любые вопросы. Давай разберёмся вместе.

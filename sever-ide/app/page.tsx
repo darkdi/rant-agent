@@ -1,4 +1,6 @@
 'use client';
+import { LanguageSwitch } from '@/components/language-provider';
+import { t, useLanguage, getLanguage } from '@/lib/i18n';
 import { isLocalEndpoint, needsApiKey } from '@/lib/model-connection';
 import MediaStudio from '@/components/media-studio';
 import { ImagePlus, Video } from 'lucide-react';
@@ -130,6 +132,7 @@ const initial: State = {
   active: null,
 };
 export default function Home() {
+ useLanguage();
   const account = useAccount();
   const theme = useRantTheme();
   const modelStorageKey = 'rant-model:' + (account.user?.id || 'local');
@@ -199,7 +202,7 @@ export default function Home() {
       const j = await r.json();
       if (!r.ok)
         throw new Error(
-          (j as { error?: string }).error || 'Не удалось выполнить действие',
+          t((j as { error?: string }).error || "Не удалось выполнить действие"),
         );
       return j as T;
     },
@@ -216,7 +219,7 @@ export default function Home() {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+      setError(e instanceof Error ? e.message : t("Ошибка"));
     } finally {
       setBusy(false);
     }
@@ -229,7 +232,7 @@ export default function Home() {
       })
       .then((j) => setToken(j.token))
       .catch(() =>
-        setError(account.cloud ? 'Соединение прервалось. Обнови страницу.' : 'Локальный сервер не запущен. Запусти start.sh или Start-Rant.command.'),
+        setError(account.cloud ? t("Соединение прервалось. Обнови страницу.") : t("Локальный сервер не запущен. Запусти start.sh или Start-Rant.command.")),
       );
   }, []);
   useEffect(() => {
@@ -246,9 +249,9 @@ export default function Home() {
       context.registerTool(
         {
           name: 'stage_agent_task',
-          title: 'Подготовить задачу',
+          title: t("Подготовить задачу"),
           description:
-            'Заполняет поле задачи в IDE. Не отправляет запрос модели и не меняет файлы.',
+            t("Заполняет поле задачи в IDE. Не отправляет запрос модели и не меняет файлы."),
           inputSchema: {
             type: 'object',
             properties: { task: { type: 'string' } },
@@ -259,7 +262,7 @@ export default function Home() {
           execute: async (input: unknown) => {
             const task = (input as { task?: unknown })?.task;
             if (typeof task !== 'string' || !task.trim() || task.length > 12000)
-              throw Error('Нужен текст задачи до 12000 символов');
+              throw Error(t("Нужен текст задачи до 12000 символов"));
             setTask(task);
             return { staged: true, submitted: false };
           },
@@ -419,7 +422,7 @@ export default function Home() {
     }
     if (dirty) {
       setError(
-        'Сначала сохрани открытый файл или нажми «Обновить», чтобы сбросить правки.',
+        t("Сначала сохрани открытый файл или нажми «Обновить», чтобы сбросить правки."),
       );
       return;
     }
@@ -447,17 +450,18 @@ export default function Home() {
     if (needsApiKey(activeProfile)) {
       setDialog('models');
       setNotice(
-        account.cloud ? 'Выбери модель из каталога.' : 'Введи API-ключ в настройках подключения. Он сохранится и будет подхватываться после перезапуска.',
+        account.cloud ? t("Выбери модель из каталога.") : t("Введи API-ключ в настройках подключения. Он сохранится и будет подхватываться после перезапуска."),
       );
       return;
     }
     if (dirty) {
-      setError('Сохрани файл перед запуском агента.');
+      setError(t("Сохрани файл перед запуском агента."));
       return;
     }
     await safe(async () => {
       const j = await api<Run>('run', {
         task,
+        language: getLanguage(),
         attachments: attached.map((a) => a.id),
         profile_id: selected,
         mode,
@@ -590,7 +594,7 @@ export default function Home() {
           }}
         />
         <IntegrationsPanel api={api} token={token} />
-        <div className="media-nav"><button onClick={() => setMediaKind('image')}><ImagePlus size={17}/> Картинки</button><button onClick={() => setMediaKind('video')}><Video size={17}/> Видео</button></div>
+        <div className="media-nav"><button onClick={() => setMediaKind('image')}><ImagePlus size={17}/>{t(" Картинки")}</button><button onClick={() => setMediaKind('video')}><Video size={17}/>{t(" Видео")}</button></div>
         {account.cloud && <CloudSubscription />}
         <AccountMenu />
       </ChatSidebar>
@@ -599,7 +603,7 @@ export default function Home() {
           {!sidebarOpen && (
             <button
               className="icon-button"
-              aria-label="Показать меню"
+              aria-label={t("Показать меню")}
               onClick={() => setSidebarOpen(true)}
             >
               <PanelLeftOpen size={21} />
@@ -609,28 +613,27 @@ export default function Home() {
             className="profile-switch"
             onClick={() => setDialog('models')}
           >
-            <span>{activeProfile?.model || 'Выбрать модель'}</span>
+            <span>{activeProfile?.model || t("Выбрать модель")}</span>
             <ChevronDown size={16} />
           </button>
           <span className="model-location">
-            {account.cloud ? 'Rant' : activeProfile?.kind === 'local' || isLocalEndpoint(activeProfile?.base_url) ? 'На компьютере' : 'API'}
+            {account.cloud ? 'Rant' : activeProfile?.kind === 'local' || isLocalEndpoint(activeProfile?.base_url) ? t("На компьютере") : 'API'}
           </span>
         </div>
         <div className="header-tools">
-          <ThemeSwitch />
+          <LanguageSwitch /><ThemeSwitch />
           {state.active && (
             <span className="header-working">
-              <span className="connected-dot" />В работе
-            </span>
+              <span className="connected-dot" />{t("В работе")}</span>
           )}
           <button
             className={'files-toggle' + (showFiles ? ' selected' : '')}
-            aria-label="Файлы и код"
+            aria-label={t("Файлы и код")}
             aria-pressed={showFiles}
             onClick={() => setShowFiles(!showFiles)}
           >
             <Code2 size={17} />
-            <span>{showFiles ? 'Закрыть файлы' : 'Файлы'}</span>
+            <span>{showFiles ? t("Закрыть файлы") : t("Файлы")}</span>
           </button>
         </div>
       </header>
@@ -639,11 +642,9 @@ export default function Home() {
           <SidebarProvider className="file-provider">
             <Sidebar collapsible="none" className="file-sidebar">
               <SidebarHeader>
-                <div className="section-heading">
-                  ПРОЕКТ
-                  <button
-                    aria-label="Открыть папку"
-                    title="Открыть папку"
+                <div className="section-heading">{t("ПРОЕКТ")}<button
+                    aria-label={t("Открыть папку")}
+                    title={t("Открыть папку")}
                     onClick={() => {
                       setProject(state.project);
                       setDialog('project');
@@ -652,8 +653,8 @@ export default function Home() {
                     <FolderOpen size={15} />
                   </button>
                   <button
-                    aria-label="Создать файл"
-                    title="Создать файл"
+                    aria-label={t("Создать файл")}
+                    title={t("Создать файл")}
                     disabled={!!state.active}
                     onClick={() => setDialog('new')}
                   >
@@ -663,11 +664,11 @@ export default function Home() {
                 <div className="folder-name" title={state.project}>
                   <ChevronRight size={13} />
                   <FolderOpen size={15} />
-                  {state.project.split('/').pop() || 'Загрузка…'}
+                  {state.project.split('/').pop() || t("Загрузка…")}
                 </div>
               </SidebarHeader>
               <SidebarContent>
-                <nav className="file-tree" aria-label="Файлы проекта">
+                <nav className="file-tree" aria-label={t("Файлы проекта")}>
                   <FileTree
                     files={state.files}
                     selected={path}
@@ -677,13 +678,10 @@ export default function Home() {
               </SidebarContent>
               <SidebarFooter>
                 <div className="local-note">
-                  <span className="status-dot" />
-                  Папка на твоём компьютере
-                </div>
-                <small className="muted">HTML → сайт · «Код» → редактор</small>
+                  <span className="status-dot" />{t("Папка на твоём компьютере")}</div>
+                <small className="muted">{t("HTML → сайт · «Код» → редактор")}</small>
                 <small className="muted">
-                  {state.files.length} файлов · изменения с откатом
-                </small>
+                  {state.files.length}{t(" файлов · изменения с откатом")}</small>
               </SidebarFooter>
             </Sidebar>
           </SidebarProvider>
@@ -693,13 +691,13 @@ export default function Home() {
             <div className="editor-heading">
               <span>
                 <FileCode2 size={14} />
-                {path || 'Открой файл'}
+                {path || t("Открой файл")}
                 {dirty && <i className="dirty-dot" />}
               </span>
               <div>
                 <button
-                  title="Обновить с диска и сбросить несохранённые правки"
-                  aria-label="Обновить файл"
+                  title={t("Обновить с диска и сбросить несохранённые правки")}
+                  aria-label={t("Обновить файл")}
                   disabled={!path || busy || !!state.active}
                   onClick={() =>
                     safe(async () => {
@@ -725,14 +723,12 @@ export default function Home() {
                         previous: original,
                       });
                       setOriginal(content);
-                      setNotice('Файл сохранён');
+                      setNotice(t("Файл сохранён"));
                       await refresh();
                     })
                   }
                 >
-                  <Save size={13} />
-                  Сохранить
-                </Button>
+                  <Save size={13} />{t("Сохранить")}</Button>
               </div>
             </div>
             <Tabs
@@ -743,26 +739,20 @@ export default function Home() {
               <div className="editor-subbar">
                 <TabsList variant="line">
                   <TabsTrigger value="code">
-                    <Code2 size={13} />
-                    Код
-                  </TabsTrigger>
+                    <Code2 size={13} />{t("Код")}</TabsTrigger>
                   <TabsTrigger
                     value="diff"
                     onClick={() =>
                       safe(async () => {
                         const id = run?.id || state.runs.at(-1)?.id;
                         if (id) await showDiff(id);
-                        else setDiff('Пока нет изменений.');
+                        else setDiff(t("Пока нет изменений."));
                       })
                     }
                   >
-                    <GitCompare size={13} />
-                    Изменения
-                  </TabsTrigger>
+                    <GitCompare size={13} />{t("Изменения")}</TabsTrigger>
                   <TabsTrigger value="log">
-                    <Activity size={13} />
-                    Журнал
-                  </TabsTrigger>
+                    <Activity size={13} />{t("Журнал")}</TabsTrigger>
                 </TabsList>
                 <span className="language">
                   {path.split('.').pop()?.toUpperCase() || 'TEXT'}
@@ -772,23 +762,18 @@ export default function Home() {
                 {!state.files.length ? (
                   <div className="empty-project">
                     <FolderOpen size={32} />
-                    <h2>В этом проекте пока нет файлов</h2>
-                    <p>
-                      Создай файл или открой другой проект через кнопку
-                      «Проекты» сверху.
-                    </p>
+                    <h2>{t("В этом проекте пока нет файлов")}</h2>
+                    <p>{t("Создай файл или открой другой проект через кнопку «Проекты» сверху.")}</p>
                     <Button
                       disabled={!!state.active || busy}
                       onClick={() => setDialog('new')}
                     >
-                      <Plus size={15} />
-                      Создать файл
-                    </Button>
+                      <Plus size={15} />{t("Создать файл")}</Button>
                     <small>{state.project}</small>
                   </div>
                 ) : (
                   <CodeMirror
-                    aria-label="Редактор кода"
+                    aria-label={t("Редактор кода")}
                     value={content}
                     height="100%"
                     theme={theme}
@@ -807,8 +792,8 @@ export default function Home() {
               </TabsContent>
               <TabsContent value="diff" className="output-pane">
                 <div className="diff-title">
-                  <b>Изменения этой задачи</b>
-                  <span>{run?.task || 'Выбери задачу'}</span>
+                  <b>{t("Изменения этой задачи")}</b>
+                  <span>{run?.task || t("Выбери задачу")}</span>
                 </div>
                 <pre>
                   {diff.split('\n').map((line, i) => (
@@ -830,15 +815,15 @@ export default function Home() {
               <TabsContent value="log" className="output-pane">
                 <pre>
                   {run?.log ||
-                    'Действия агента появятся здесь после запуска задачи.'}
+                    t("Действия агента появятся здесь после запуска задачи.")}
                 </pre>
               </TabsContent>
             </Tabs>
             <div className="editor-footer">
               <span>
-                {dirty ? '● Есть несохранённые правки' : '✓ Сохранено на диске'}
+                {dirty ? t("● Есть несохранённые правки") : t("✓ Сохранено на диске")}
               </span>
-              <span>UTF-8 · {content.split('\n').length} строк</span>
+              <span>UTF-8 · {content.split('\n').length}{t(" строк")}</span>
             </div>
           </main>
         )}
@@ -846,7 +831,7 @@ export default function Home() {
           <div className="agent-heading">
             <span>
               {state.chats?.find((c) => c.id === state.conversation)?.title ||
-                'Новый чат'}
+                t("Новый чат")}
             </span>
             {state.preview_url && (
               <a
@@ -854,9 +839,7 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
                 className="preview-link"
-              >
-                Открыть сайт ↗
-              </a>
+              >{t("Открыть сайт ↗")}</a>
             )}
           </div>
           <div
@@ -871,34 +854,32 @@ export default function Home() {
             {!state.runs.length && !run && (
               <div className="chat-welcome">
                 <div className="welcome-symbol"><RantCharacter /><span className="welcome-spark" aria-hidden="true">✦</span></div>
-                <h1>Что сделаем <span>сегодня?</span></h1>
-                <p className="intro">
-                  Твои идеи. Любые вопросы. Давай разберёмся вместе.
-                </p>
-                {(!state.profiles.some(p => p.kind !== 'local') && state.local_model?.status === 'unavailable') && <div className="first-connection"><b>Выбери, где будет работать модель</b><p>Ollama или LM Studio на твоём компьютере, встроенная Qwen на Mac либо API со своим ключом.</p><button onClick={() => setDialog('models')}>Подключить первую модель</button><a href="/help.html" target="_blank" rel="noreferrer">Инструкция по установке</a></div>}
+                <h1>{t("Что сделаем ")}<span>{t("сегодня?")}</span></h1>
+                <p className="intro">{t("Твои идеи. Любые вопросы. Давай разберёмся вместе.")}</p>
+                {(!state.profiles.some(p => p.kind !== 'local') && state.local_model?.status === 'unavailable') && <div className="first-connection"><b>{t("Выбери, где будет работать модель")}</b><p>{t("Ollama или LM Studio на твоём компьютере, встроенная Qwen на Mac либо API со своим ключом.")}</p><button onClick={() => setDialog('models')}>{t("Подключить первую модель")}</button><a href="/help.html" target="_blank" rel="noreferrer">{t("Инструкция по установке")}</a></div>}
                 <div className="welcome-suggestions">
-                  <button onClick={() => setMediaKind('image')}><ImagePlus size={18}/><span>Создать картинку</span></button>
-                  <button onClick={() => setMediaKind('video')}><Video size={18}/><span>Создать видео</span></button>
+                  <button onClick={() => setMediaKind('image')}><ImagePlus size={18}/><span>{t("Создать картинку")}</span></button>
+                  <button onClick={() => setMediaKind('video')}><Video size={18}/><span>{t("Создать видео")}</span></button>
                   {[
                     {
                       icon: Code2,
-                      title: 'Работа с кодом',
-                      text: 'Помоги с кодом проекта. Сначала уточни, что нужно создать, исправить или улучшить.',
+                      title: t("Работа с кодом"),
+                      text: t("Помоги с кодом проекта. Сначала уточни, что нужно создать, исправить или улучшить."),
                     },
                     {
                       icon: Pencil,
-                      title: 'Написать текст',
-                      text: 'Помоги написать текст. Сначала уточни для кого и с какой целью.',
+                      title: t("Написать текст"),
+                      text: t("Помоги написать текст. Сначала уточни для кого и с какой целью."),
                     },
                     {
                       icon: Sparkles,
-                      title: 'Разобраться в теме',
-                      text: 'Помоги разобраться в сложной теме простыми словами.',
+                      title: t("Разобраться в теме"),
+                      text: t("Помоги разобраться в сложной теме простыми словами."),
                     },
                     {
                       icon: Globe,
-                      title: 'Поручить браузеру',
-                      text: 'Помоги выполнить задачу в браузере.',
+                      title: t("Поручить браузеру"),
+                      text: t("Помоги выполнить задачу в браузере."),
                     },
                   ].map((item, i) => (
                     <button
@@ -926,7 +907,7 @@ export default function Home() {
             )}
 
             {!!displayRuns.length && (
-              <div className="conversation-history" aria-label="Сообщения чата">
+              <div className="conversation-history" aria-label={t("Сообщения чата")}>
                 {displayRuns.map((r) => (
                   <div className="past-run" key={r.id}>
                     <div className="user-message">
@@ -936,13 +917,13 @@ export default function Home() {
                       )}
                     </div>
                     <ModelAnswer
-                      text={r.final || 'Задача сохранена в журнале.'}
+                      text={r.final || t("Задача сохранена в журнале.")}
                     />
                     <div className="answer-actions">
                       <CopyAnswer text={r.final || ''} />
                       <button
-                        aria-label="Изменить запрос"
-                        title="Изменить и отправить как новое сообщение"
+                        aria-label={t("Изменить запрос")}
+                        title={t("Изменить и отправить как новое сообщение")}
                         onClick={() => {
                           setTask(r.task);
                           composerRef.current?.focus();
@@ -961,8 +942,7 @@ export default function Home() {
                             setMode('read');
                           })
                         }
-                      >
-                        Изменённые файлы <ChevronRight size={12} />
+                      >{t("Изменённые файлы ")}<ChevronRight size={12} />
                       </button>
                     )}
                   </div>
@@ -985,37 +965,37 @@ export default function Home() {
                   )}{' '}
                   {run.status === 'running'
                     ? run.pending
-                      ? 'Нужно твоё действие'
+                      ? t("Нужно твоё действие")
                       : run.partial
-                        ? 'Пишет ответ…'
+                        ? t("Пишет ответ…")
                         : run.mode === 'chat'
-                          ? 'Готовлю ответ…'
+                          ? t("Готовлю ответ…")
                           : run.mode === 'browser'
-                            ? 'Работаю в браузере…'
-                            : 'Работаю с файлами…'
+                            ? t("Работаю в браузере…")
+                            : t("Работаю с файлами…")
                     : run.status === 'model_finished'
                       ? run.checks?.warnings?.length
-                        ? 'Есть предупреждения'
-                        : 'Готово'
+                        ? t("Есть предупреждения")
+                        : t("Готово")
                       : run.status === 'validation_warnings'
-                        ? 'Есть предупреждения'
+                        ? t("Есть предупреждения")
                         : run.status === 'validation_failed'
-                          ? 'Проверка выявила ошибки'
+                          ? t("Проверка выявила ошибки")
                           : run.status === 'connection_error'
-                            ? 'Нет связи с Chrome'
+                            ? t("Нет связи с Chrome")
                             : run.status === 'needs_user'
-                              ? 'Нужно твоё действие'
+                              ? t("Нужно твоё действие")
                               : run.status === 'incomplete'
-                                ? 'Выполнение не подтверждено'
+                                ? t("Выполнение не подтверждено")
                                 : run.status === 'error'
-                                  ? 'Не удалось завершить'
+                                  ? t("Не удалось завершить")
                                   : run.status === 'undone'
-                                    ? 'Правки отменены'
-                                    : 'Остановлено — проверь результат'}
+                                    ? t("Правки отменены")
+                                    : t("Остановлено — проверь результат")}
                 </div>
                 {run.log && (
                   <details className="activity-details">
-                    <summary>Действия агента</summary>
+                    <summary>{t("Действия агента")}</summary>
                     <pre className="live-log">{run.log}</pre>
                   </details>
                 )}
@@ -1036,44 +1016,40 @@ export default function Home() {
                 {run.status === 'running' && run.pending && (
                   <section
                     className="browser-approval"
-                    aria-label="Подтверждение действия"
+                    aria-label={t("Подтверждение действия")}
                   >
                     <b>
                       {run.pending.action === 'question'
-                        ? 'Вопрос по задаче'
+                        ? t("Вопрос по задаче")
                         : run.pending.action === 'manual'
-                          ? 'Нужен ручной ввод в браузере'
+                          ? t("Нужен ручной ввод в браузере")
                           : {
-                              click: 'Нажать на элемент',
-                              type: 'Ввести текст',
-                              select: 'Выбрать вариант',
-                            }[run.pending.action] || 'Действие браузера'}
+                              click: t("Нажать на элемент"),
+                              type: t("Ввести текст"),
+                              select: t("Выбрать вариант"),
+                            }[run.pending.action] || t("Действие браузера")}
                     </b>
                     <small>{run.pending.url}</small>
                     {run.pending.reason && <p>{run.pending.reason}</p>}
                     {run.pending.action === 'question' && (
                       <textarea
                         className="question-answer"
-                        aria-label="Ответ агенту"
+                        aria-label={t("Ответ агенту")}
                         value={questionAnswer}
                         maxLength={4000}
                         onChange={(e) => setQuestionAnswer(e.target.value)}
-                        placeholder="Ответь здесь — агент продолжит сам"
+                        placeholder={t("Ответь здесь — агент продолжит сам")}
                       />
                     )}
-                    {run.pending.target && <p>Элемент: {run.pending.target}</p>}
+                    {run.pending.target && <p>{t("Элемент: ")}{run.pending.target}</p>}
                     {run.pending.href && (
-                      <small>Ссылка: {run.pending.href}</small>
+                      <small>{t("Ссылка: ")}{run.pending.href}</small>
                     )}
                     {run.pending.text !== undefined && (
                       <pre>{run.pending.text}</pre>
                     )}
                     {!['manual', 'question'].includes(run.pending.action) && (
-                      <small>
-                        «Всегда разрешать» сохраняет доступ для всех проектов,
-                        включая отправку форм по твоему поручению. Отключить
-                        можно в «Доступах».
-                      </small>
+                      <small>{t("«Всегда разрешать» сохраняет доступ для всех проектов, включая отправку форм по твоему поручению. Отключить можно в «Доступах».")}</small>
                     )}
                     <div>
                       <Button
@@ -1098,12 +1074,12 @@ export default function Home() {
                         }
                       >
                         {decisionId === run.pending.id
-                          ? 'Решение принято'
+                          ? t("Решение принято")
                           : run.pending.action === 'question'
-                            ? 'Ответить и продолжить'
+                            ? t("Ответить и продолжить")
                             : run.pending.action === 'manual'
-                              ? 'Готово, продолжай'
-                              : 'Выполнить'}
+                              ? t("Готово, продолжай")
+                              : t("Выполнить")}
                       </Button>
                       {!['manual', 'question'].includes(run.pending.action) && (
                         <Button
@@ -1120,9 +1096,7 @@ export default function Home() {
                               setDecisionId(id);
                             })
                           }
-                        >
-                          Всегда разрешать
-                        </Button>
+                        >{t("Всегда разрешать")}</Button>
                       )}
                       <Button
                         variant="outline"
@@ -1138,9 +1112,7 @@ export default function Home() {
                             setDecisionId(id);
                           })
                         }
-                      >
-                        Отклонить
-                      </Button>
+                      >{t("Отклонить")}</Button>
                     </div>
                   </section>
                 )}
@@ -1150,8 +1122,8 @@ export default function Home() {
                     <div className="answer-actions">
                       <CopyAnswer text={run.final} />
                       <button
-                        aria-label="Изменить запрос"
-                        title="Изменить и отправить как новое сообщение"
+                        aria-label={t("Изменить запрос")}
+                        title={t("Изменить и отправить как новое сообщение")}
                         disabled={!!state.active}
                         onClick={() => {
                           setTask(run.task);
@@ -1173,14 +1145,14 @@ export default function Home() {
                             href={previewFileUrl(f)}
                             target="_blank"
                             rel="noreferrer"
-                            title="Открыть локальную страницу"
+                            title={t("Открыть локальную страницу")}
                           >
                             <Globe size={12} />
                             {f} ↗
                           </a>
                           <button
-                            aria-label={'Изменения ' + f}
-                            title="Посмотреть изменения"
+                            aria-label={t("Изменения ") + f}
+                            title={t("Посмотреть изменения")}
                             onClick={() =>
                               safe(async () => {
                                 await showDiff(run.id, f);
@@ -1215,7 +1187,7 @@ export default function Home() {
                   run.mode !== 'chat' &&
                   run.checks && (
                     <div className="check-evidence">
-                      <b>Проверка IDE</b>
+                      <b>{t("Проверка IDE")}</b>
                       {run.checks.errors?.map((x, i) => (
                         <p className="check-error" key={'e' + i}>
                           {x}
@@ -1229,13 +1201,10 @@ export default function Home() {
                       {run.checks.errors &&
                         !run.checks.errors.length &&
                         !run.checks.warnings?.length && (
-                          <p>Статические проверки пройдены.</p>
+                          <p>{t("Статические проверки пройдены.")}</p>
                         )}
                       {run.mode !== 'browser' && run.mode !== 'chat' && (
-                        <small>
-                          Работа кнопок и внешний вид автоматически не
-                          проверялись.
-                        </small>
+                        <small>{t("Работа кнопок и внешний вид автоматически не проверялись.")}</small>
                       )}
                     </div>
                   )}
@@ -1246,7 +1215,7 @@ export default function Home() {
                     onClick={() =>
                       safe(async () => {
                         await api('undo', { id: run.id });
-                        setNotice('Правки этой задачи отменены');
+                        setNotice(t("Правки этой задачи отменены"));
                         setRun(null);
                         await refresh();
                         if (path) {
@@ -1259,9 +1228,7 @@ export default function Home() {
                       })
                     }
                   >
-                    <Undo2 size={13} />
-                    Откатить эту задачу
-                  </button>
+                    <Undo2 size={13} />{t("Откатить эту задачу")}</button>
                 )}
               </div>
             )}
@@ -1270,7 +1237,7 @@ export default function Home() {
           {!follow && (
             <button
               className="scroll-bottom"
-              aria-label="К последнему сообщению"
+              aria-label={t("К последнему сообщению")}
               onClick={() => {
                 setFollow(true);
                 end.current?.scrollIntoView({
@@ -1288,8 +1255,8 @@ export default function Home() {
                 <Globe size={14} />
                 <b>
                   {state.browser?.connected
-                    ? 'Chrome подключён'
-                    : 'Подключи Chrome через расширение'}
+                    ? t("Chrome подключён")
+                    : t("Подключи Chrome через расширение")}
                 </b>
                 <span>{state.browser?.tab?.title}</span>
                 <button
@@ -1299,9 +1266,7 @@ export default function Home() {
                       await refresh();
                     })
                   }
-                >
-                  Проверить
-                </button>
+                >{t("Проверить")}</button>
               </div>
             )}
             <>
@@ -1310,35 +1275,33 @@ export default function Home() {
                 !state.browser.capabilities?.all_sites && (
                   <p className="message notice">
                     {state.browser.capabilities?.tabs
-                      ? 'В расширении Rant Agent нажми «Разрешить Chrome» один раз. Затем сайты и вкладки агент открывает сам.'
-                      : 'Открой значок расширения в Chrome → «Обновить расширение». Затем снова открой его и нажми «Разрешить Chrome».'}
+                      ? t("В расширении Rant Agent нажми «Разрешить Chrome» один раз. Затем сайты и вкладки агент открывает сам.")
+                      : t("Открой значок расширения в Chrome → «Обновить расширение». Затем снова открой его и нажми «Разрешить Chrome».")}
                   </p>
                 )}
             </>
             <div className="context-bar" hidden>
-              <span title="Агент сам ведёт внутренние рабочие заметки. Свежая страница и текущая цель имеют приоритет.">
-                Контекст обновляется автоматически
-                {path && mode !== 'browser' ? ' · ' + path : ''}
+              <span title={t("Агент сам ведёт внутренние рабочие заметки. Свежая страница и текущая цель имеют приоритет.")}>{t("Контекст обновляется автоматически")}{path && mode !== 'browser' ? ' · ' + path : ''}
               </span>
             </div>
             <div className="access-caption" hidden>
               {mode === 'browser'
                 ? state.permissions?.browser
                   ? state.permissions.browser_auto
-                    ? 'Браузер · постоянное разрешение включено'
-                    : 'Браузер · действия с подтверждением'
-                  : 'Включи браузер в разделе «Доступы»'
+                    ? t("Браузер · постоянное разрешение включено")
+                    : t("Браузер · действия с подтверждением")
+                  : t("Включи браузер в разделе «Доступы»")
                 : mode === 'edit'
-                  ? 'Доступ: чтение и правка папки проекта'
+                  ? t("Доступ: чтение и правка папки проекта")
                   : mode === 'read'
-                    ? 'Доступ: только чтение папки проекта'
-                    : 'Без доступа к файлам · выбери «Читать» или «Править файлы»'}
+                    ? t("Доступ: только чтение папки проекта")
+                    : t("Без доступа к файлам · выбери «Читать» или «Править файлы»")}
             </div>
             {error && (
               <div className="message error" role="alert">
-                {error}
+                {t(error)}
                 <button
-                  aria-label="Закрыть ошибку"
+                  aria-label={t("Закрыть ошибку")}
                   onClick={() => setError('')}
                 >
                   ×
@@ -1347,9 +1310,9 @@ export default function Home() {
             )}
             {notice && (
               <output className="message notice">
-                {notice}
+                {t(notice)}
                 <button
-                  aria-label="Закрыть уведомление"
+                  aria-label={t("Закрыть уведомление")}
                   onClick={() => setNotice('')}
                 >
                   ×
@@ -1368,15 +1331,15 @@ export default function Home() {
               )}
               <textarea
                 ref={composerRef}
-                aria-label="Сообщение"
+                aria-label={t("Сообщение")}
                 placeholder={
                   mode === 'browser'
-                    ? 'Что сделать в браузере?'
+                    ? t("Что сделать в браузере?")
                     : mode === 'edit'
-                      ? 'Что сделать с файлами?'
+                      ? t("Что сделать с файлами?")
                       : mode === 'read'
-                        ? 'Что изучить в проекте?'
-                        : 'Спроси или поручи задачу…'
+                        ? t("Что изучить в проекте?")
+                        : t("Спроси или поручи задачу…")
                 }
                 value={task}
                 rows={1}
@@ -1414,10 +1377,10 @@ export default function Home() {
                     <span>
                       {
                         {
-                          chat: 'Чат',
-                          browser: 'Браузер',
-                          edit: 'Работа с файлами',
-                          read: 'Изучить файлы',
+                          chat: t("Чат"),
+                          browser: t("Браузер"),
+                          edit: t("Работа с файлами"),
+                          read: t("Изучить файлы"),
                         }[mode]
                       }
                     </span>
@@ -1427,26 +1390,26 @@ export default function Home() {
                     {[
                       {
                         id: 'chat',
-                        title: 'Чат',
-                        note: 'Вопросы, тексты, идеи и анализ',
+                        title: t("Чат"),
+                        note: t("Вопросы, тексты, идеи и анализ"),
                         icon: MessageCircle,
                       },
                       {
                         id: 'browser',
-                        title: 'Браузер',
-                        note: 'Действия на сайтах через Chrome',
+                        title: t("Браузер"),
+                        note: t("Действия на сайтах через Chrome"),
                         icon: Globe,
                       },
                       {
                         id: 'edit',
-                        title: 'Работа с файлами',
-                        note: 'Создание и редактирование в проекте',
+                        title: t("Работа с файлами"),
+                        note: t("Создание и редактирование в проекте"),
                         icon: Code2,
                       },
                       {
                         id: 'read',
-                        title: 'Изучить файлы',
-                        note: 'Чтение проекта без изменений',
+                        title: t("Изучить файлы"),
+                        note: t("Чтение проекта без изменений"),
                         icon: FolderOpen,
                       },
                     ].map((item) => (
@@ -1478,11 +1441,11 @@ export default function Home() {
                 {state.active ? (
                   <button
                     className="send stop"
-                    aria-label="Остановить агента"
+                    aria-label={t("Остановить агента")}
                     onClick={() =>
                       safe(async () => {
                         await api('stop', { id: state.active });
-                        setNotice('Останавливаю задачу…');
+                        setNotice(t("Останавливаю задачу…"));
                       })
                     }
                   >
@@ -1491,7 +1454,7 @@ export default function Home() {
                 ) : (
                   <button
                     className="send"
-                    aria-label="Отправить задачу"
+                    aria-label={t("Отправить задачу")}
                     disabled={!task.trim() || busy || uploading || !token}
                     onClick={start}
                   >
@@ -1503,28 +1466,28 @@ export default function Home() {
             <div className="composer-foot">
               <span>
                 {needsApiKey(activeProfile) ? (
-                  <>{account.cloud ? 'Выбери модель, чтобы начать' : 'Добавь API-ключ в «Подключениях»'}</>
+                  <>{account.cloud ? t("Выбери модель, чтобы начать") : t("Добавь API-ключ в «Подключениях»")}</>
                 ) : activeProfile?.kind === 'local' ? (
                   <>
                     <span className="status-dot" style={{background:state.local_model?.status==='unavailable'||state.local_model?.status==='error'?'var(--rant-soft)':undefined}} />
                     {state.local_model?.status === 'ready'
-                      ? 'Qwen в памяти'
+                      ? t("Qwen в памяти")
                       : state.local_model?.status === 'loading'
-                        ? 'Qwen загружается'
+                        ? t("Qwen загружается")
                         : state.local_model?.status === 'unavailable'
-                          ? 'Qwen требует настройки'
+                          ? t("Qwen требует настройки")
                           : state.local_model?.status === 'error'
-                            ? 'Ошибка загрузки Qwen · открой настройки модели'
-                            : 'Qwen загрузится при первом сообщении'}
+                            ? t("Ошибка загрузки Qwen · открой настройки модели")
+                            : t("Qwen загрузится при первом сообщении")}
                   </>
                 ) : (
                   <>
                     <Globe size={11} />
-                    {isLocalEndpoint(activeProfile?.base_url) ? 'Локальный сервер · API-ключ не обязателен' : 'Данные задачи получает выбранный API'}
+                    {isLocalEndpoint(activeProfile?.base_url) ? t("Локальный сервер · API-ключ не обязателен") : t("Данные задачи получает выбранный API")}
                   </>
                 )}
               </span>
-              <span>Enter — отправить · Shift Enter — строка</span>
+              <span>{t("Enter — отправить · Shift Enter — строка")}</span>
             </div>
           </div>
         </section>
@@ -1552,30 +1515,28 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>
               {dialog === 'models'
-                ? 'Модели и подключения'
+                ? t("Модели и подключения")
                 : dialog === 'project'
-                  ? 'Открыть папку проекта'
-                  : 'Новый файл'}
+                  ? t("Открыть папку проекта")
+                  : t("Новый файл")}
             </DialogTitle>
             <DialogDescription>
               {dialog === 'models'
-                ? 'Локальная модель или твой API. Переключай без перенастройки проекта.'
+                ? t("Локальная модель или твой API. Переключай без перенастройки проекта.")
                 : dialog === 'project'
-                  ? 'Агент сможет читать и изменять файлы внутри выбранной папки.'
-                  : 'Вложенные папки создадутся автоматически.'}
+                  ? t("Агент сможет читать и изменять файлы внутри выбранной папки.")
+                  : t("Вложенные папки создадутся автоматически.")}
             </DialogDescription>
           </DialogHeader>
           {error && (
             <div className="message error" role="alert">
-              {error}
+              {t(error)}
             </div>
           )}
-          {notice && <output className="message notice">{notice}</output>}
+          {notice && <output className="message notice">{t(notice)}</output>}
           {dialog === 'project' ? (
             <>
-              <label>
-                Полный путь к папке
-                <input
+              <label>{t("Полный путь к папке")}<input
                   value={project}
                   onChange={(e) => setProject(e.target.value)}
                   placeholder="/Users/…/my-project"
@@ -1594,15 +1555,11 @@ export default function Home() {
                     setDialog('');
                   })
                 }
-              >
-                Открыть папку
-              </Button>
+              >{t("Открыть папку")}</Button>
             </>
           ) : (
             <>
-              <label>
-                Путь внутри проекта
-                <input
+              <label>{t("Путь внутри проекта")}<input
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
                   placeholder="assets/js/app.js"
@@ -1625,9 +1582,7 @@ export default function Home() {
                     setDialog('');
                   })
                 }
-              >
-                Создать файл
-              </Button>
+              >{t("Создать файл")}</Button>
             </>
           )}
         </DialogContent>
@@ -1652,6 +1607,7 @@ function FileTree({
   open: (path: string) => void;
   prefix?: string;
 }) {
+ useLanguage();
   const children = Array.from(
     new Set(
       files
@@ -1696,19 +1652,19 @@ function FileTree({
                 href={previewFileUrl(full)}
                 target="_blank"
                 rel="noreferrer"
-                title={'Открыть локальную страницу ' + full}
+                title={t("Открыть локальную страницу ") + full}
               >
                 <Globe size={14} />
                 <span>{name}</span>
               </a>
               <button
                 className="file-code-button"
-                aria-label={'Редактировать код ' + full}
-                title="Редактировать код"
+                aria-label={t("Редактировать код ") + full}
+                title={t("Редактировать код")}
                 onClick={() => open(full)}
               >
                 <Code2 size={13} />
-                <span>Код</span>
+                <span>{t("Код")}</span>
               </button>
             </div>
           );
@@ -1729,11 +1685,12 @@ function FileTree({
 }
 
 function CopyAnswer({ text }: { text: string }) {
+ useLanguage();
   const [copied, setCopied] = useState(false);
   return (
     <button
-      aria-label={copied ? 'Скопировано' : 'Скопировать ответ'}
-      title={copied ? 'Скопировано' : 'Скопировать ответ'}
+      aria-label={copied ? t("Скопировано") : t("Скопировать ответ")}
+      title={copied ? t("Скопировано") : t("Скопировать ответ")}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);

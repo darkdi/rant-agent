@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import ts from 'typescript';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const catalog=JSON.parse(fs.readFileSync('lib/translations.json','utf8'));
+const output=ts.transpileModule(fs.readFileSync('lib/i18n.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+const storage=new Map(),document={documentElement:{lang:'en'},title:''};
+const context={exports:{},require:name=>name==='./translations.json'?catalog:require(name),document,localStorage:{setItem:(k,v)=>storage.set(k,v)}};
+vm.runInNewContext(output,context);const {t,setLanguage,getLanguage}=context.exports;
+assert.equal(getLanguage(),'en');assert.equal(t('Работа с кодом'),'Work with code');
+assert.equal(t('Что сделаем '),'What shall we do ');assert.equal(t('const user = "Дима";'),'const user = "Дима";');
+setLanguage('ru');assert.equal(document.documentElement.lang,'ru');assert.equal(storage.get('rant-language'),'ru');assert.equal(t('Работа с кодом'),'Работа с кодом');assert.equal(t('Work with code'),'Работа с кодом');
+setLanguage('en');assert.equal(t('Создать видео'),'Create a video');
+context.localStorage.setItem=()=>{throw Error('Storage blocked')};assert.doesNotThrow(()=>setLanguage('ru'));
+let count=0;
+function check(file){const source=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(source)==='t'&&node.arguments[0]&&ts.isStringLiteral(node.arguments[0])){const value=node.arguments[0].text.replace(/\s+/g,' ').trim();if(/[А-Яа-яЁё]/.test(value)){assert.ok(catalog[value],`Missing translation in ${file}: ${value}`);count++}}ts.forEachChild(node,visit)}visit(source)}
+for(const dir of ['app','components','components/ui'])for(const name of fs.readdirSync(dir))if(name.endsWith('.tsx'))check(path.join(dir,name));
+assert.ok(count>500);console.log(`Locale defaults, switching, persistence, unknown text and ${count} translated UI strings: OK`);

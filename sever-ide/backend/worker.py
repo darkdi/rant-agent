@@ -269,6 +269,7 @@ def run_worker(cfg,extra):
  if mode=='chat':
   identity=identity.replace('Полные записи доступны через read_project_context; прошлый разговор — search_conversation.','Прошлый разговор доступен через search_conversation и read_conversation. Если в сводке не хватает точных данных, перечитай архив; не придумывай подробности.')
   if profile['kind']=='local':identity=identity.replace('Полный архив доступен через search_conversation.','Передана выбранная часть истории.').replace('Прошлый разговор доступен через search_conversation и read_conversation. Если в сводке не хватает точных данных, перечитай архив; не придумывай подробности.','Доступны только переданные записи и сообщения; не придумывай отсутствующие подробности.')
+ identity+='\nPreferred interface language: '+('Russian' if cfg.get('language')=='ru' else 'English')+'. Use it by default for user-facing replies, unless the user asks for or uses another language. Never translate code, identifiers or quoted source text unnecessarily.'
  permissions=cfg.get('permissions',{'files':'write','web':False,'release':False})
  if mode=='read':permitted=set(READ_TOOLS)
  elif mode=='edit':permitted={t['function']['name'] for t in TOOLS}

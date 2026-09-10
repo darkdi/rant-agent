@@ -6,7 +6,7 @@
 
 An open-source assistant for conversations, project files, browser tasks, images and video. Run a local model or bring your own API connection. Your conversation archive and settings live on your computer.
 
-**Early alpha · MIT · macOS / Linux · Russian interface**
+**Early alpha · MIT · macOS / Linux · English / Русский interface**
 
 [Подробная установка на русском](docs/INSTALL_RU.md) · [English installation](docs/INSTALL.md) · [Media generation](docs/MEDIA.md) · [Roadmap](ROADMAP.md)
 
@@ -84,3 +84,7 @@ Rant Agent source is [MIT licensed](LICENSE). Dependencies and model weights ret
 ## Browser, desktop and MCP connectors
 
 [Chrome, Rant Connect Local and MCP — setup guide](docs/CONNECTORS.md). Personal connector archives are available in **Инструменты и приложения**. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.
+
+## Interface language
+
+English is the default. Use **EN / RU** in the top bar to switch instantly; your choice is saved in this browser. Chat messages, project names and file contents are not translated. Offline help is available in both languages.

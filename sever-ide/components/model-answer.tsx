@@ -1,4 +1,5 @@
 'use client';
+import { t, useLanguage } from '@/lib/i18n';
 import { useState, isValidElement, Children, type ReactNode } from 'react';
 import { Copy, Check } from 'lucide-react';
 import Markdown from 'react-markdown';
@@ -15,17 +16,18 @@ function plain(node: ReactNode): string {
     .join('');
 }
 function CodeBlock({ children }: { children?: ReactNode }) {
+ useLanguage();
   const [copied, setCopied] = useState(false);
   const code = Children.toArray(children).find((x) => isValidElement(x));
   const language = isValidElement<{ className?: string }>(code)
-    ? code.props.className?.replace('language-', '') || 'Код'
-    : 'Код';
+    ? code.props.className?.replace('language-', '') || t("Код")
+    : t("Код");
   return (
     <div className="answer-code">
       <div className="code-block-header">
         <span>{language}</span>
         <button
-          aria-label="Скопировать код"
+          aria-label={t("Скопировать код")}
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(
@@ -39,7 +41,7 @@ function CodeBlock({ children }: { children?: ReactNode }) {
           }}
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}{' '}
-          {copied ? 'Скопировано' : 'Копировать'}
+          {copied ? t("Скопировано") : t("Копировать")}
         </button>
       </div>
       <pre>{children}</pre>
@@ -47,6 +49,7 @@ function CodeBlock({ children }: { children?: ReactNode }) {
   );
 }
 export default function ModelAnswer({ text }: { text: string }) {
+ useLanguage();
   return (
     <div className="model-answer markdown-answer">
       <Markdown
@@ -60,7 +63,7 @@ export default function ModelAnswer({ text }: { text: string }) {
             </a>
           ),
           img: ({ alt }) => (
-            <span>{alt ? '[Изображение: ' + alt + ']' : '[Изображение]'}</span>
+            <span>{alt ? t("[Изображение: ") + alt + ']' : t("[Изображение]")}</span>
           ),
         }}
       >

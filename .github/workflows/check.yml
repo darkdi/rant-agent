@@ -23,5 +23,5 @@ jobs:
       - run: python scripts/check_release.py
       - run: npm ci
         working-directory: sever-ide
-      - run: npm run typecheck && npm run build
+      - run: npm run test:i18n && npm run typecheck && npm run build
         working-directory: sever-ide

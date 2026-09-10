@@ -1,6 +1,6 @@
 {
   "name": "rant-agent",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -11,7 +11,8 @@
     "start": "../.venv/bin/python backend/server.py --open",
     "lint": "oxlint",
     "format": "oxfmt",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:i18n": "node scripts/test-i18n.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

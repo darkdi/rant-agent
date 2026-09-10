@@ -1,4 +1,5 @@
 'use client';
+import { t, useLanguage } from '@/lib/i18n';
 import { useState } from 'react';
 import {
   Settings2,
@@ -74,6 +75,7 @@ export default function WorkspaceControls({
   selectedAgent: string;
   onSelectAgent: (a: Agent) => void;
 }) {
+ useLanguage();
   const [panel, setPanel] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
@@ -90,7 +92,7 @@ export default function WorkspaceControls({
     [existing, setExisting] = useState('');
   const [agent, setAgent] = useState<Agent>({
       id: '',
-      name: 'Мой агент',
+      name: t("Мой агент"),
       mode: 'read',
       instruction: '',
     }),
@@ -102,7 +104,7 @@ export default function WorkspaceControls({
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+      setError(e instanceof Error ? e.message : t("Ошибка"));
     } finally {
       setBusy(false);
     }
@@ -129,7 +131,7 @@ export default function WorkspaceControls({
     const response = await fetch('/bridge/release-download?id=' + id, {
       headers: { 'X-Sever-Token': token },
     });
-    if (!response.ok) throw Error('Не удалось скачать архив');
+    if (!response.ok) throw Error(t("Не удалось скачать архив"));
     const url = URL.createObjectURL(await response.blob());
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -142,26 +144,16 @@ export default function WorkspaceControls({
       <div className="workspace-controls">
         <DropdownMenu>
           <DropdownMenuTrigger disabled={disabled} className="settings-entry">
-            <Settings2 size={17} />
-            Настройки и возможности
-          </DropdownMenuTrigger>
+            <Settings2 size={17} />{t("Настройки и возможности")}</DropdownMenuTrigger>
           <DropdownMenuContent side="top" className="workspace-menu">
             <DropdownMenuItem onClick={() => show('access')}>
-              <ShieldCheck size={16} />
-              Доступы
-            </DropdownMenuItem>
+              <ShieldCheck size={16} />{t("Доступы")}</DropdownMenuItem>
             <DropdownMenuItem onClick={() => show('projects')}>
-              <FolderOpen size={16} />
-              Папки проектов
-            </DropdownMenuItem>
+              <FolderOpen size={16} />{t("Папки проектов")}</DropdownMenuItem>
             <DropdownMenuItem onClick={() => show('agents')}>
-              <Bot size={16} />
-              Профили агентов
-            </DropdownMenuItem>
+              <Bot size={16} />{t("Профили агентов")}</DropdownMenuItem>
             <DropdownMenuItem onClick={() => show('release')}>
-              <Rocket size={16} />
-              Подготовить публикацию
-            </DropdownMenuItem>
+              <Rocket size={16} />{t("Подготовить публикацию")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -175,28 +167,28 @@ export default function WorkspaceControls({
           <DialogHeader>
             <DialogTitle>
               {{
-                projects: 'Проекты',
-                access: 'Доступы агента',
-                agents: 'Профили агентов',
-                release: 'Подготовить публикацию',
+                projects: t("Проекты"),
+                access: t("Доступы агента"),
+                agents: t("Профили агентов"),
+                release: t("Подготовить публикацию"),
               }[panel] || ''}
             </DialogTitle>
             <DialogDescription>
               {panel === 'access'
-                ? 'Доступ к файлам относится к этой папке. Доступ к Chrome сохраняется для всех проектов и чатов.'
+                ? t("Доступ к файлам относится к этой папке. Доступ к Chrome сохраняется для всех проектов и чатов.")
                 : panel === 'projects'
-                  ? 'Создай отдельный проект или открой существующую папку.'
+                  ? t("Создай отдельный проект или открой существующую папку.")
                   : panel === 'agents'
-                    ? 'Роль, инструкции и режим работы. Агенты выполняются по одному.'
-                    : 'Собери статический сайт в архив и проверь состав перед отправкой на сервер.'}
+                    ? t("Роль, инструкции и режим работы. Агенты выполняются по одному.")
+                    : t("Собери статический сайт в архив и проверь состав перед отправкой на сервер.")}
             </DialogDescription>
           </DialogHeader>
           {error && (
             <p className="message error" role="alert">
-              {error}
+              {t(error)}
             </p>
           )}
-          {notice && <output className="message notice">{notice}</output>}
+          {notice && <output className="message notice">{t(notice)}</output>}
           {panel === 'projects' && (
             <>
               <div className="project-list">
@@ -221,28 +213,21 @@ export default function WorkspaceControls({
                   </button>
                 ))}
               </div>
-              <h3>Новый проект</h3>
+              <h3>{t("Новый проект")}</h3>
               <div className="form-row">
-                <label>
-                  Название папки
-                  <input
+                <label>{t("Название папки")}<input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Мой проект"
+                    placeholder={t("Мой проект")}
                   />
                 </label>
-                <label>
-                  Создать внутри
-                  <input
+                <label>{t("Создать внутри")}<input
                     value={parent}
                     onChange={(e) => setParent(e.target.value)}
                   />
                 </label>
               </div>
-              <p className="form-help">
-                Проект создаётся пустым. Агент добавит нужные файлы по твоей
-                задаче; для браузера файлы не нужны.
-              </p>
+              <p className="form-help">{t("Проект создаётся пустым. Агент добавит нужные файлы по твоей задаче; для браузера файлы не нужны.")}</p>
               <Button
                 disabled={busy || !name.trim()}
                 onClick={() =>
@@ -254,13 +239,9 @@ export default function WorkspaceControls({
                   })
                 }
               >
-                <FolderPlus size={14} />
-                Создать и открыть
-              </Button>
+                <FolderPlus size={14} />{t("Создать и открыть")}</Button>
               <div className="section-divider" />
-              <label>
-                Открыть существующую папку
-                <input
+              <label>{t("Открыть существующую папку")}<input
                   value={existing}
                   onChange={(e) => setExisting(e.target.value)}
                   placeholder="/Users/…/project"
@@ -276,15 +257,13 @@ export default function WorkspaceControls({
                     setPanel('');
                   })
                 }
-              >
-                Открыть папку
-              </Button>
+              >{t("Открыть папку")}</Button>
             </>
           )}
           {panel === 'access' && (
             <>
               <code className="allowed-path">{state.project}</code>
-              <p className="field-label">Файлы выбранного проекта</p>
+              <p className="field-label">{t("Файлы выбранного проекта")}</p>
               <Tabs
                 value={access.files}
                 onValueChange={(v) =>
@@ -296,62 +275,51 @@ export default function WorkspaceControls({
                 }
               >
                 <TabsList>
-                  <TabsTrigger value="none">Нет доступа</TabsTrigger>
-                  <TabsTrigger value="read">Только читать</TabsTrigger>
-                  <TabsTrigger value="write">Читать и править</TabsTrigger>
+                  <TabsTrigger value="none">{t("Нет доступа")}</TabsTrigger>
+                  <TabsTrigger value="read">{t("Только читать")}</TabsTrigger>
+                  <TabsTrigger value="write">{t("Читать и править")}</TabsTrigger>
                 </TabsList>
               </Tabs>
               <div className="permission-row">
                 <div>
-                  <b>Поиск и чтение URL</b>
-                  <small>
-                    Чтение публичных HTTPS-страниц и поиск. Запросы уходят в
-                    сеть.
-                  </small>
+                  <b>{t("Поиск и чтение URL")}</b>
+                  <small>{t("Чтение публичных HTTPS-страниц и поиск. Запросы уходят в сеть.")}</small>
                 </div>
                 <Switch
-                  aria-label="Разрешить интернет"
+                  aria-label={t("Разрешить интернет")}
                   checked={access.web}
                   onCheckedChange={(checked) =>
                     setAccess({ ...access, web: checked })
                   }
                 />
               </div>
-              <label>
-                Ключ Brave Search API
-                <input
+              <label>{t("Ключ Brave Search API")}<input
                   type="password"
                   autoComplete="off"
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
                   placeholder={
                     state.search_has_key
-                      ? 'Ключ сохранён'
-                      : 'Для поиска, необязателен для чтения URL'
+                      ? t("Ключ сохранён")
+                      : t("Для поиска, необязателен для чтения URL")
                   }
                 />
               </label>
-              <p className="form-help">
-                Ключ сохраняется после закрытия IDE. Получить его можно в{' '}
+              <p className="form-help">{t("Ключ сохраняется после закрытия IDE. Получить его можно в")}{' '}
                 <a
                   href="https://api-dashboard.search.brave.com/"
                   target="_blank"
                   rel="noreferrer"
                 >
                   Brave Search API
-                </a>
-                . Без ключа можно читать известные URL.
-              </p>
+                </a>{t(". Без ключа можно читать известные URL.")}</p>
               <div className="permission-row">
                 <div>
-                  <b>Подготовка публикации</b>
-                  <small>
-                    Создать ZIP и перечень файлов. Ничего не отправляет на
-                    сервер.
-                  </small>
+                  <b>{t("Подготовка публикации")}</b>
+                  <small>{t("Создать ZIP и перечень файлов. Ничего не отправляет на сервер.")}</small>
                 </div>
                 <Switch
-                  aria-label="Разрешить подготовку публикации"
+                  aria-label={t("Разрешить подготовку публикации")}
                   checked={access.release}
                   disabled={access.files === 'none'}
                   onCheckedChange={(checked) =>
@@ -361,15 +329,11 @@ export default function WorkspaceControls({
               </div>
               <div className="permission-row">
                 <div>
-                  <b>Браузерный агент</b>
-                  <small>
-                    Сам открывает сайты и вкладки, нажимает и заполняет формы по
-                    твоим поручениям. Разрешение действует во всех проектах
-                    после перезапуска.
-                  </small>
+                  <b>{t("Браузерный агент")}</b>
+                  <small>{t("Сам открывает сайты и вкладки, нажимает и заполняет формы по твоим поручениям. Разрешение действует во всех проектах после перезапуска.")}</small>
                 </div>
                 <Switch
-                  aria-label="Разрешить браузер"
+                  aria-label={t("Разрешить браузер")}
                   checked={access.browser}
                   onCheckedChange={(checked) =>
                     setAccess({
@@ -380,17 +344,10 @@ export default function WorkspaceControls({
                   }
                 />
               </div>
-              <p className="form-help">
-                Один раз открой значок Rant Agent в Chrome и нажми «Разрешить
-                Chrome». После этого сайты и вкладки агент открывает сам. При
-                выборе API текст страниц получает выбранная модель. Пароли и
-                коды вводи в браузере.
-              </p>
+              <p className="form-help">{t("Один раз открой значок Rant Agent в Chrome и нажми «Разрешить Chrome». После этого сайты и вкладки агент открывает сам. При выборе API текст страниц получает выбранная модель. Пароли и коды вводи в браузере.")}</p>
               <div className="capability-note">
-                <b>Терминал и SSH</b>
-                <p>
-                  Пока не подключены. Публикация готовит архив для проверки.
-                </p>
+                <b>{t("Терминал и SSH")}</b>
+                <p>{t("Пока не подключены. Публикация готовит архив для проверки.")}</p>
               </div>
               <Button
                 disabled={busy}
@@ -403,13 +360,11 @@ export default function WorkspaceControls({
                     setSearchKey('');
                     await onRefresh();
                     setNotice(
-                      'Разрешения сохранены. Выбери подходящий режим под полем задачи.',
+                      t("Разрешения сохранены. Выбери подходящий режим под полем задачи."),
                     );
                   })
                 }
-              >
-                Сохранить разрешения
-              </Button>
+              >{t("Сохранить разрешения")}</Button>
             </>
           )}
           {panel === 'agents' && (
@@ -420,42 +375,38 @@ export default function WorkspaceControls({
                     key={a.id}
                     onClick={() => {
                       onSelectAgent(a);
-                      setNotice('Выбран агент: ' + a.name);
+                      setNotice(t("Выбран агент: ") + a.name);
                     }}
                   >
                     <Bot size={15} />
                     <span>
-                      <b>{a.name}</b>
+                      <b>{['assistant','developer','reviewer','researcher','browser'].includes(a.id)?t(a.name):a.name}</b>
                       <small>
                         {a.mode === 'browser'
-                          ? 'Работа в браузере'
+                          ? t("Работа в браузере")
                           : a.mode === 'edit'
-                            ? 'Редактирование'
+                            ? t("Редактирование")
                             : a.mode === 'read'
-                              ? 'Чтение и инструменты'
-                              : 'Обсуждение'}
+                              ? t("Чтение и инструменты")
+                              : t("Обсуждение")}
                       </small>
                     </span>
                     {selectedAgent === a.id && <Check size={14} />}
                   </button>
                 ))}
               </div>
-              <h3>Создать своего агента</h3>
-              <label>
-                Название
-                <input
+              <h3>{t("Создать своего агента")}</h3>
+              <label>{t("Название")}<input
                   value={agent.name}
                   onChange={(e) => setAgent({ ...agent, name: e.target.value })}
                 />
               </label>
-              <label>
-                Инструкции
-                <textarea
+              <label>{t("Инструкции")}<textarea
                   value={agent.instruction}
                   onChange={(e) =>
                     setAgent({ ...agent, instruction: e.target.value })
                   }
-                  placeholder="Например: проверяй доступность интерфейса, указывай файл и конкретную проблему…"
+                  placeholder={t("Например: проверяй доступность интерфейса, указывай файл и конкретную проблему…")}
                 />
               </label>
               <Tabs
@@ -463,16 +414,13 @@ export default function WorkspaceControls({
                 onValueChange={(v) => setAgent({ ...agent, mode: String(v) })}
               >
                 <TabsList>
-                  <TabsTrigger value="read">Чтение</TabsTrigger>
-                  <TabsTrigger value="edit">Редактирование</TabsTrigger>
-                  <TabsTrigger value="chat">Обсуждение</TabsTrigger>
-                  <TabsTrigger value="browser">Браузер</TabsTrigger>
+                  <TabsTrigger value="read">{t("Чтение")}</TabsTrigger>
+                  <TabsTrigger value="edit">{t("Редактирование")}</TabsTrigger>
+                  <TabsTrigger value="chat">{t("Обсуждение")}</TabsTrigger>
+                  <TabsTrigger value="browser">{t("Браузер")}</TabsTrigger>
                 </TabsList>
               </Tabs>
-              <p className="form-help">
-                Инструкции не расширяют права. Для сети включи интернет в
-                «Доступах»; для правок — запись в папку.
-              </p>
+              <p className="form-help">{t("Инструкции не расширяют права. Для сети включи интернет в «Доступах»; для правок — запись в папку.")}</p>
               <Button
                 disabled={busy || !agent.name.trim()}
                 onClick={() =>
@@ -482,66 +430,50 @@ export default function WorkspaceControls({
                     onSelectAgent(saved);
                     setAgent({
                       id: '',
-                      name: 'Мой агент',
+                      name: t("Мой агент"),
                       instruction: '',
                       mode: 'read',
                     });
-                    setNotice('Агент сохранён и выбран');
+                    setNotice(t("Агент сохранён и выбран"));
                   })
                 }
               >
-                <Plus size={14} />
-                Создать агента
-              </Button>
+                <Plus size={14} />{t("Создать агента")}</Button>
             </>
           )}
           {panel === 'release' && (
             <>
-              <p className="capability-note">
-                Сервер назначения ещё не настроен. Архив можно скачать;
-                автоматической отправки по SSH пока нет.
-              </p>
-              <label>
-                Папка готового статического сайта
-                <input
+              <p className="capability-note">{t("Сервер назначения ещё не настроен. Архив можно скачать; автоматической отправки по SSH пока нет.")}</p>
+              <label>{t("Папка готового статического сайта")}<input
                   value={directory}
                   onChange={(e) => setDirectory(e.target.value)}
-                  placeholder=". или dist"
+                  placeholder={t(". или dist")}
                 />
               </label>
-              <p className="form-help">
-                Нужен index.html. Упаковываются HTML, CSS, JS и медиа. Исходники
-                Python/PHP, скрытые файлы и конфигурации не включаются.
-              </p>
+              <p className="form-help">{t("Нужен index.html. Упаковываются HTML, CSS, JS и медиа. Исходники Python/PHP, скрытые файлы и конфигурации не включаются.")}</p>
               <Button
                 disabled={busy || !state.permissions?.release}
                 onClick={() =>
                   safely(async () => {
                     await api('release', { directory });
                     await onRefresh();
-                    setNotice('Архив подготовлен. Ничего не опубликовано.');
+                    setNotice(t("Архив подготовлен. Ничего не опубликовано."));
                   })
                 }
               >
-                <Rocket size={14} />
-                Подготовить архив
-              </Button>
+                <Rocket size={14} />{t("Подготовить архив")}</Button>
               {!state.permissions?.release && (
-                <button className="text-button" onClick={() => show('access')}>
-                  Разрешить подготовку в «Доступах»
-                </button>
+                <button className="text-button" onClick={() => show('access')}>{t("Разрешить подготовку в «Доступах»")}</button>
               )}
               <div className="release-list">
                 {state.releases?.map((r) => (
                   <details key={r.id}>
-                    <summary>
-                      Сборка {r.id.slice(0, 8)} · {r.files.length} файлов ·{' '}
-                      {(r.bytes / 1024).toFixed(1)} КБ
-                    </summary>
+                    <summary>{t("Сборка ")}{r.id.slice(0, 8)} · {r.files.length}{t(" файлов ·")}{' '}
+                      {(r.bytes / 1024).toFixed(1)}{t(" КБ")}</summary>
                     <ul>
                       {r.files.map((f) => (
                         <li key={f.path}>
-                          {f.path} <small>{f.bytes} Б</small>
+                          {f.path} <small>{f.bytes}{t(" Б")}</small>
                         </li>
                       ))}
                     </ul>
@@ -550,9 +482,7 @@ export default function WorkspaceControls({
                       variant="outline"
                       onClick={() => safely(() => download(r.id))}
                     >
-                      <Download size={13} />
-                      Скачать ZIP
-                    </Button>
+                      <Download size={13} />{t("Скачать ZIP")}</Button>
                   </details>
                 ))}
               </div>

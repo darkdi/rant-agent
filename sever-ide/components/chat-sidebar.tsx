@@ -1,4 +1,5 @@
 'use client';
+import { t, useLanguage } from '@/lib/i18n';
 import { BrandLogo } from '@/components/brand-logo';
 import { useState, type ReactNode } from 'react';
 import { useAccount } from '@/components/account-gate';
@@ -51,6 +52,7 @@ type Props = {
   children: ReactNode;
 };
 export default function ChatSidebar(p: Props) {
+ useLanguage();
   const account = useAccount();
   const [query, setQuery] = useState(''),
     [edit, setEdit] = useState<Item | null>(null),
@@ -67,7 +69,7 @@ export default function ChatSidebar(p: Props) {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не удалось сохранить');
+      setError(e instanceof Error ? e.message : t("Не удалось сохранить"));
     } finally {
       setBusy(false);
       p.onBusy(false);
@@ -93,7 +95,7 @@ export default function ChatSidebar(p: Props) {
       <DropdownMenu>
         <DropdownMenuTrigger
           className="row-menu"
-          aria-label={'Меню: ' + item.title}
+          aria-label={t("Меню: ") + item.title}
           disabled={p.disabled || busy}
         >
           <MoreHorizontal size={17} />
@@ -110,13 +112,9 @@ export default function ChatSidebar(p: Props) {
               setError('');
             }}
           >
-            <Pencil size={15} />
-            Переименовать
-          </DropdownMenuItem>
+            <Pencil size={15} />{t("Переименовать")}</DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => remove(item)}>
-            <Trash2 size={15} />
-            Удалить
-          </DropdownMenuItem>
+            <Trash2 size={15} />{t("Удалить")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -131,19 +129,19 @@ export default function ChatSidebar(p: Props) {
       {p.open && (
         <button
           className="sidebar-scrim"
-          aria-label="Закрыть боковую панель"
+          aria-label={t("Закрыть боковую панель")}
           onClick={p.close}
         />
       )}
       <aside
         className={'library-sidebar' + (p.open ? ' is-open' : '')}
-        aria-label="Навигация"
+        aria-label={t("Навигация")}
       >
         <div className="library-brand">
           <BrandLogo />
           <button
             className="icon-button"
-            aria-label="Свернуть меню"
+            aria-label={t("Свернуть меню")}
             onClick={p.close}
           >
             <PanelLeftClose size={18} />
@@ -157,29 +155,26 @@ export default function ChatSidebar(p: Props) {
             closeMobile();
           }}
         >
-          <Plus size={20} />
-          Новый чат<span>⌘ K</span>
+          <Plus size={20} />{t("Новый чат")}<span>⌘ K</span>
         </button>
         <label className="nav-search">
           <Search size={16} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск чатов и проектов"
-            aria-label="Поиск чатов и проектов"
+            placeholder={t("Поиск чатов и проектов")}
+            aria-label={t("Поиск чатов и проектов")}
           />
           {query && (
-            <button aria-label="Очистить поиск" onClick={() => setQuery('')}>
+            <button aria-label={t("Очистить поиск")} onClick={() => setQuery('')}>
               <X size={13} />
             </button>
           )}
         </label>
         <div className="library-scroll">
-          <div className="nav-label">
-            Проекты
-            <button
+          <div className="nav-label">{t("Проекты")}<button
               className="icon-button"
-              aria-label="Создать проект"
+              aria-label={t("Создать проект")}
               disabled={p.disabled || busy}
               onClick={() => {
                 setCreate(true);
@@ -219,8 +214,7 @@ export default function ChatSidebar(p: Props) {
                 </div>
               ))}
           </div>
-          <div className="nav-label">
-            Чаты{' '}
+          <div className="nav-label">{t("Чаты")}{' '}
             <span className="nav-context">
               {p.projects.find((x) => x.path === p.project)?.name}
             </span>
@@ -251,26 +245,24 @@ export default function ChatSidebar(p: Props) {
                 </div>
               ))}
             {query && !p.chats.some((x) => matches(x.title)) && (
-              <p className="nav-empty">Чатов с таким названием нет</p>
+              <p className="nav-empty">{t("Чатов с таким названием нет")}</p>
             )}
           </div>
         </div>
         <div className="library-footer">
           {error && !edit && !create && (
             <div className="message error" role="alert">
-              {error}
+              {t(error)}
             </div>
           )}
           {undo && (
             <output className="undo-toast">
-              <span>Перемещено в корзину</span>
+              <span>{t("Перемещено в корзину")}</span>
               <button
                 disabled={busy || p.disabled}
                 onClick={() => safe(() => restore(undo))}
-              >
-                Отменить
-              </button>
-              <button aria-label="Закрыть" onClick={() => setUndo(null)}>
+              >{t("Отменить")}</button>
+              <button aria-label={t("Закрыть")} onClick={() => setUndo(null)}>
                 <X size={13} />
               </button>
             </output>
@@ -285,13 +277,10 @@ export default function ChatSidebar(p: Props) {
               )
             }
           >
-            <Trash2 size={16} />
-            Корзина
-          </button>
+            <Trash2 size={16} />{t("Корзина")}</button>
           <div className="local-identity" hidden={account.cloud}>
             <span className="user-avatar">R</span>
-            <span>
-              Твоё пространство<small>История сохраняется локально</small>
+            <span>{t("Твоё пространство")}<small>{t("История сохраняется локально")}</small>
             </span>
             <span className="connected-dot" />
           </div>
@@ -310,17 +299,17 @@ export default function ChatSidebar(p: Props) {
           <DialogHeader>
             <DialogTitle>
               {create
-                ? 'Новый проект'
+                ? t("Новый проект")
                 : edit?.kind === 'project'
-                  ? 'Название проекта'
-                  : 'Название чата'}
+                  ? t("Название проекта")
+                  : t("Название чата")}
             </DialogTitle>
             <DialogDescription>
               {create
-                ? 'Отдельное пространство для разговоров, материалов и задач. Начнём с пустой папки.'
+                ? t("Отдельное пространство для разговоров, материалов и задач. Начнём с пустой папки.")
                 : edit?.kind === 'project'
-                  ? 'Название в списке. Папка с файлами останется на месте.'
-                  : 'Название поможет быстро найти разговор.'}
+                  ? t("Название в списке. Папка с файлами останется на месте.")
+                  : t("Название поможет быстро найти разговор.")}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -336,21 +325,19 @@ export default function ChatSidebar(p: Props) {
               });
             }}
           >
-            <label>
-              Название
-              <input
-                aria-label="Название"
+            <label>{t("Название")}<input
+                aria-label={t("Название")}
                 value={name}
                 maxLength={create ? 80 : 120}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={
-                  create ? 'Например, идеи для бизнеса' : 'Название чата'
+                  create ? t("Например, идеи для бизнеса") : t("Название чата")
                 }
               />
             </label>
             {error && (
               <p className="message error" role="alert">
-                {error}
+                {t(error)}
               </p>
             )}
             <div className="dialog-actions">
@@ -361,22 +348,18 @@ export default function ChatSidebar(p: Props) {
                   setEdit(null);
                   setCreate(false);
                 }}
-              >
-                Отмена
-              </Button>
+              >{t("Отмена")}</Button>
               <Button
                 disabled={busy || p.disabled || !name.trim()}
                 type="submit"
               >
                 {busy ? (
-                  'Сохраняю…'
+                  t("Сохраняю…")
                 ) : create ? (
                   <>
-                    <FolderPlus size={15} />
-                    Создать проект
-                  </>
+                    <FolderPlus size={15} />{t("Создать проект")}</>
                 ) : (
-                  'Сохранить'
+                  t("Сохранить")
                 )}
               </Button>
             </div>
@@ -391,21 +374,18 @@ export default function ChatSidebar(p: Props) {
       >
         <DialogContent className="settings-dialog">
           <DialogHeader>
-            <DialogTitle>Корзина</DialogTitle>
-            <DialogDescription>
-              Удалённые чаты этого проекта и удалённые проекты. Рабочие файлы
-              остаются на компьютере.
-            </DialogDescription>
+            <DialogTitle>{t("Корзина")}</DialogTitle>
+            <DialogDescription>{t("Удалённые чаты этого проекта и удалённые проекты. Рабочие файлы остаются на компьютере.")}</DialogDescription>
           </DialogHeader>
           {error && (
             <p className="message error" role="alert">
-              {error}
+              {t(error)}
             </p>
           )}
           {!trash?.length ? (
             <div className="trash-empty">
               <Trash2 size={32} />
-              <p>Здесь пока пусто</p>
+              <p>{t("Здесь пока пусто")}</p>
             </div>
           ) : (
             <div className="trash-list">
@@ -418,16 +398,14 @@ export default function ChatSidebar(p: Props) {
                   )}
                   <span>
                     {x.title}
-                    <small>{x.kind === 'project' ? 'Проект' : 'Чат'}</small>
+                    <small>{x.kind === 'project' ? t("Проект") : t("Чат")}</small>
                   </span>
                   <button
                     disabled={busy || p.disabled}
-                    aria-label={'Восстановить ' + x.title}
+                    aria-label={t("Восстановить ") + x.title}
                     onClick={() => safe(() => restore(x))}
                   >
-                    <RotateCcw size={16} />
-                    Восстановить
-                  </button>
+                    <RotateCcw size={16} />{t("Восстановить")}</button>
                 </div>
               ))}
             </div>

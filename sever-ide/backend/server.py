@@ -214,7 +214,7 @@ def launch(data):
   except (ValueError,OSError):opened=''
  ide_context={'model':p['model'],'mode':mode,'active_file':opened if access['files']!='none' and mode!='browser' else '', 'view':view if view in {'code','diff','log'} else 'code','history_tasks':len(history)//2,'screen_visible':False}
  meta['context']=ide_context;persist(directory/'meta.json',meta)
- config={'data_dir':str(DATA),'attachments':attached,'memory':memory_context(root,3500 if p['kind']=='local' else 18000),'conversation':conversation_id(root),'ide_context':ide_context,'browser_profile':str(DATA/'browser-profiles'/hashlib.sha256(str(root).encode()).hexdigest()[:16]),'permissions':access,'agent_instruction':agent['instruction'],'search_key':KEYS.get('brave-search',''),'release_dir':str(RELEASES),'preview_url':preview_url(),'root':str(root),'run':str(directory),'task':task,'profile':p,'mode':mode,'history':history}
+ config={'language':'ru' if data.get('language')=='ru' else 'en','data_dir':str(DATA),'attachments':attached,'memory':memory_context(root,3500 if p['kind']=='local' else 18000),'conversation':conversation_id(root),'ide_context':ide_context,'browser_profile':str(DATA/'browser-profiles'/hashlib.sha256(str(root).encode()).hexdigest()[:16]),'permissions':access,'agent_instruction':agent['instruction'],'search_key':KEYS.get('brave-search',''),'release_dir':str(RELEASES),'preview_url':preview_url(),'root':str(root),'run':str(directory),'task':task,'profile':p,'mode':mode,'history':history}
  handle=(directory/'output.log').open('w')
  try:
   if p['kind']=='local':proc=LOCAL.submit(config)

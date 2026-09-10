@@ -20,3 +20,7 @@ npm run build
 Generated logos/icons are committed so users do not need design tools. To rebuild the favicon from the supplied R glyph after an intentional asset change, run `.venv/bin/python scripts/build_icons.py`; it uses the frontend's Sharp dependency and base Pillow installation. Original brand SVG paths should remain intact.
 
 Do not include secrets, personal data, third-party weights or assets you do not have permission to share. Contributions are licensed under the repository's MIT license. Be respectful and focus discussions on concrete behavior and evidence.
+
+## Translations
+
+UI strings use `t()` from `sever-ide/lib/i18n.ts`. Keep English translations in `sever-ide/lib/translations.json` and subscribe render functions with `useLanguage()`. Never translate user-authored conversations, names, file contents or provider identifiers. Run `npm run test:i18n` from sever-ide; also verify EN/RU switching and refresh persistence in a browser.

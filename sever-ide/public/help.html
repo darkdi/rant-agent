@@ -1,4 +1,119 @@
-<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Установка и помощь — Rant Agent</title><link rel="icon" href="/favicon.svg"><style>:root{color-scheme:light dark}body{font:16px/1.75 system-ui;max-width:960px;margin:40px auto;padding:0 24px;background:light-dark(#fafbfe,#17191d);color:light-dark(#172035,#f5f6fa)}a{color:light-dark(#0865f5,#6ea7ff)}h1,h2,h3{line-height:1.3;margin-top:2em}pre{padding:18px;overflow:auto;border:1px solid #8994a855;border-radius:12px;background:light-dark(#f0f3f9,#111318)}code{font-size:.9em}table{border-collapse:collapse;display:block;overflow:auto}td,th{padding:10px;border:1px solid #8994a855}nav{display:flex;gap:20px;flex-wrap:wrap}section{scroll-margin-top:20px}</style><nav><a href="/">← Rant Agent</a><a href="#install">Установка</a><a href="#media">Картинки и видео</a><a href="#connectors">Браузер и компьютер</a><a href="https://github.com/darkdi/rant-agent">GitHub</a></nav><section id="install"><h1>Rant Agent — установка с нуля</h1>
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setup and help — Rant Agent</title><link rel="icon" href="/favicon.svg"><style>:root{color-scheme:light dark}body{font:16px/1.75 system-ui;max-width:960px;margin:40px auto;padding:0 24px;background:light-dark(#fafbfe,#17191d);color:light-dark(#172035,#f5f6fa)}a{color:light-dark(#0865f5,#6ea7ff)}h1,h2,h3{line-height:1.3;margin-top:2em}pre{padding:18px;overflow:auto;border:1px solid #8994a855;border-radius:12px;background:light-dark(#f0f3f9,#111318)}code{font-size:.9em}table{border-collapse:collapse;display:block;overflow:auto}td,th{padding:10px;border:1px solid #8994a855}nav{display:flex;gap:20px;flex-wrap:wrap}section{scroll-margin-top:20px}[hidden]{display:none!important}select{font:inherit}</style><nav><a href="/">← Rant Agent</a><a href="#install" data-nav="0">Installation</a><a href="#media" data-nav="1">Images and video</a><a href="#connectors" data-nav="2">Browser and computer</a><select id="language" aria-label="Language / Язык"><option value="en">English</option><option value="ru">Русский</option></select><a href="https://github.com/darkdi/rant-agent">GitHub</a></nav><div data-language="en" ><section data-anchor="install"><h1>Installation (English)</h1>
+<p>Rant Agent is a single-user local application. Its UI is currently Russian. Start with one model route; neither Ollama nor MLX is mandatory.</p>
+<h2>Prerequisites</h2>
+<ul>
+<li>macOS or Linux; Python 3.12+ with <code>venv</code>, Node.js 22.13+ with npm, Git.</li>
+<li>A browser for the UI; Chrome 120+ only if you want the browser agent.</li>
+<li>Internet for first-time package/model downloads. No automatic weight downloads.</li>
+<li>API mode does not require a GPU. Local model memory requirements depend on weights and context. Native Windows and WSL are not validated in this alpha.</li>
+</ul>
+<p>Install prerequisites from <a href="https://www.python.org/downloads/">Python</a>, <a href="https://nodejs.org/en/download">Node.js</a>, and <a href="https://git-scm.com/downloads">Git</a>. Linux users may need the distribution&#x27;s <code>python3-venv</code> package.</p>
+<pre><code class="language-bash">git clone https://github.com/darkdi/rant-agent.git
+cd rant-agent
+./start.sh
+</code></pre>
+<p>Open <a href="http://127.0.0.1:4311">http://127.0.0.1:4311</a>. Keep the terminal running. Ctrl+C stops the app. The launcher caches dependency/build fingerprints and rebuilds when source changes.</p>
+<p>Other options:</p>
+<pre><code class="language-bash">./start.sh --check
+./start.sh --no-open --no-browser
+./start.sh --port 4321 --preview-port 4322
+./start.sh --rebuild
+</code></pre>
+<h2>Model routes</h2>
+<p>Click the model name, then <strong>Добавить модель</strong> (Add model).</p>
+<ul>
+<li><strong>Ollama:</strong> install and open <a href="https://ollama.com/download">Ollama</a>, run <code>ollama pull qwen3:4b</code>. Choose the Ollama preset (<code>http://127.0.0.1:11434/v1</code>), fetch the model list, select the downloaded model, save. Normal local Ollama does not need a key. <a href="https://docs.ollama.com/api/openai-compatibility">Official compatibility reference</a>.</li>
+<li><strong>LM Studio:</strong> download/load a model, start its Developer server. Choose LM Studio (<code>http://127.0.0.1:1234/v1</code>), fetch models and save. Add a key only if server authentication is enabled. <a href="https://lmstudio.ai/docs/developer/core/server">Official server setup</a>.</li>
+<li><strong>API:</strong> select a provider or <strong>Другой сервис</strong>, provide the base URL, your key and exact model ID. Use the API format the provider supports. Save-and-test performs a real, potentially billable request. Save alone only stores configuration.</li>
+</ul>
+<p>For built-in <strong>Qwen3.5-9B-4bit on Apple Silicon</strong>, after the first base installation:</p>
+<pre><code class="language-bash">.venv/bin/pip install -r requirements-mlx.txt
+.venv/bin/python scripts/setup_model.py --download
+./start.sh
+</code></pre>
+<p>The explicit download uses <code>~/Models/Qwen3.5-9B-4bit</code>. To reuse existing MLX weights instead:</p>
+<pre><code class="language-bash">.venv/bin/python scripts/setup_model.py --path &quot;$HOME/Models/Qwen3.5-9B-4bit&quot;
+</code></pre>
+<p>Use <code>--replace</code> to change an existing registration. The built-in runtime does not accept GGUF. The first chat loads the weights; following requests reuse them. <strong>Выгрузить Qwen из памяти</strong> unloads the model. Weight/model licenses are separate from Rant&#x27;s MIT license.</p>
+<h2>Browser extension</h2>
+<p>Start Rant first. In Chrome, open <code>chrome://extensions</code>, enable Developer mode and load unpacked <code>sever-ide/chrome-extension</code> from <strong>this checkout</strong>. Open <strong>Rant Agent Local — браузер</strong>, approve the requested Chrome permissions, then enable the browser inside Rant&#x27;s <strong>Настройки и возможности → Доступы</strong> and save. Switch the composer to browser mode.</p>
+<p>Pairing tokens and ports are generated per installation. After updating, reload that extension in Chrome. Do not overwrite or disable extensions belonging to another installation. Passwords and one-time codes should be entered manually in Chrome.</p>
+<h2>Media</h2>
+<p><strong>Создать картинку</strong> / <strong>Создать видео</strong> on the welcome screen (or sidebar) opens the media studio. Configure an independent media provider. <a href="https://github.com/darkdi/rant-agent/blob/main/docs/MEDIA.md">Media guide</a> covers Images API, Replicate and local ComfyUI. Chat models are not media-generation engines.</p>
+<h2>Data, updates and troubleshooting</h2>
+<p>Settings, chats, media and keys live under <code>sever-ide/.local</code>. Projects normally live under <code>sever-ide/projects</code>; external project folders remain where you selected them. Stop the app and back these up privately before updates. Keys have filesystem permissions but are not encrypted. Never publish these directories.</p>
+<pre><code class="language-bash">git pull --ff-only
+./start.sh
+</code></pre>
+<p>If a port is occupied, use the alternative-port command above. If a model fails, check it in Ollama/LM Studio directly or inspect Qwen&#x27;s setup error. API errors usually require checking endpoint, model identifier, format or provider credentials. For full troubleshooting and screenshots of UI labels, use the <a href="https://github.com/darkdi/rant-agent/blob/main/docs/INSTALL_RU.md">Russian guide</a>. See <a href="https://github.com/darkdi/rant-agent/blob/main/docs/../SECURITY.md">security</a> before enabling external tools.</p>
+<h2>Browser, desktop and MCP connectors</h2>
+<p><a href="https://github.com/darkdi/rant-agent/blob/main/docs/CONNECTORS.md">Chrome, Rant Connect Local and MCP — setup guide</a>. Personal connector archives are available in <strong>Инструменты и приложения</strong>. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.</p></section><section data-anchor="media"><h1>Image and video generation</h1>
+<p>Open <strong>Create an image</strong> or <strong>Create a video</strong> on the welcome screen, or Images / Video in the sidebar. Add a connection separately for each media type. Saving a connection makes no generation request. Your provider charges for API generation; Rant adds no credits or billing layer. Local workflows use your hardware, but custom workflow nodes may call paid APIs.</p>
+<h2>Images API</h2>
+<p>Choose <strong>Images API · OpenAI-compatible</strong>, enter a connection name, the provider&#x27;s base URL (usually ending in <code>/v1</code>), API key, and exact image model ID. This adapter sends <code>POST /images/generations</code> with <code>model</code>, <code>prompt</code>, and <code>n: 1</code>. It accepts a base64 image or result URL. It does not turn a chat-only model into an image model.</p>
+<p>Under Model parameters, paste a JSON object of parameters supported by that model, such as size or quality. Do not put credentials in this object. The prompt comes from your description; model and count are controlled by the app. Arbitrary multipart image-editing APIs are not supported.</p>
+<h2>Replicate images or video</h2>
+<p>Select Replicate, use <code>https://api.replicate.com/v1</code>, and enter your own token. Set the model to <code>owner/model</code> for an official model, or <code>owner/model:version</code> with its full version hash. Set duration, aspect ratio and other supported inputs in Model parameters. Consult the selected model&#x27;s input schema: there is no universal parameter set for every model.</p>
+<p>The adapter creates one prediction and polls its status. It expects an image/video URL or a list of URLs and keeps the first result. Video must be MP4 or WebM. The job ID is shown for checking its status in Replicate. See the <a href="https://replicate.com/docs/reference/http/">Replicate HTTP API</a>.</p>
+<h2>Local ComfyUI</h2>
+<p>Install <a href="https://docs.comfy.org/">ComfyUI</a> separately, add the model weights and nodes your workflow needs, and first confirm that the workflow runs successfully in ComfyUI itself. Rant does not install model weights or build workflows automatically. Qwen/Ollama chat models do not generate images/video through this adapter.</p>
+<ol>
+<li>Start ComfyUI locally, normally at <code>http://127.0.0.1:8188</code>.</li>
+<li>Export a working workflow in <strong>API format</strong>, not the ordinary visual-editor format.</li>
+<li>Replace its positive prompt text with <code>__PROMPT__</code>. Keep the negative prompt unchanged.</li>
+<li>In Rant choose ComfyUI, enter the local address and paste the workflow JSON. An API key is optional.</li>
+<li>Save the connection, enter your description, and generate.</li>
+</ol>
+<p>An image workflow must save PNG/JPEG/WebP. A video workflow must save MP4/WebM in an output reported under images, gifs, or videos. Install any custom nodes required by your workflow. Rant uses <code>/prompt</code>, <code>/history/{id}</code>, and <code>/view</code>; see <a href="https://docs.comfy.org/development/comfyui-server/comms_routes">ComfyUI routes</a>. Only loopback ComfyUI endpoints are supported.</p>
+<h2>Results, limits and recovery</h2>
+<p>Results are stored under <code>sever-ide/.local/media</code> and can be downloaded from the gallery. They persist after closing the dialog. Keep Rant running while generation is active. The current limits are one active job, 60 gallery entries, approximately 1 GB of saved results, a 100 MB downloaded result, and a 32-megapixel image. Images are normalized to PNG. Back up the files you need before clearing the media folder while Rant is stopped.</p>
+<p>Generation requests are never automatically resubmitted. If the app restarts or loses a response, the job is marked for review: it may have completed at the provider. Check the provider dashboard or ComfyUI history before generating again. Repeating a paid request may incur another charge. A provider&#x27;s progress bar or quality cannot be inferred from a connection being saved.</p>
+<p>API keys are stored separately from connection metadata in a private local directory; they are not encrypted. Output downloads do not receive provider credentials. Use only trusted providers and workflows.</p>
+<p>Adapter contract tests cover synthetic responses. A real paid generation or your particular ComfyUI model still needs verification after setup.</p></section><section data-anchor="connectors"><h1>Browser, desktop and MCP connectors</h1>
+<p>These instructions are for the open-source local app on macOS/Linux. A Rant account or subscription is not required. Your chosen API provider may charge for model usage. The local connectors are separate from the cloud version for ai.rant.ae.</p>
+<h2>Chrome</h2>
+<ol>
+<li>Start Rant and open <strong>Tools and apps → Your Chrome</strong>.</li>
+<li>Click <strong>Download extension for this installation</strong>. This ZIP contains a personal pairing key and this installation&#x27;s ports. Do not publish or share it.</li>
+<li>Extract to a permanent folder. Open <code>chrome://extensions</code>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select the folder containing <code>manifest.json</code>.</li>
+<li>Open <strong>Rant Agent Local</strong> from Chrome&#x27;s extension menu and grant browser access. In Rant settings, open <strong>Permissions</strong> and enable the browser agent.</li>
+<li>The connector should show <strong>Connected</strong>. Try <strong>Use the browser</strong> with a small task on a public HTTPS page.</li>
+</ol>
+<p>The extension reads pages, navigates, clicks and fills forms for your tasks. Page content may be sent to your model provider. Enter passwords and verification codes yourself. The cloud extension does not pair with the local app automatically.</p>
+<p>If disconnected, keep Rant running, click <strong>Check connection</strong>, and reload the extension in Chrome. After reinstalling Rant, download the archive again. The bridge selects a free port pair without stopping unrelated processes. Downloading the extension starts the bridge even after launching with <code>--no-browser</code>.</p>
+<h2>Rant Connect Local</h2>
+<p>This experimental companion controls the <strong>same computer running Rant</strong>. It does not connect to ai.rant.ae, open an inbound port, or install a background service. Connecting another computer over a network is outside this local package&#x27;s scope.</p>
+<h3>Install</h3>
+<p>Use Python 3.12+ with Tk. Check with <code>python3 -c &quot;import tkinter&quot;</code>. On Mac, install a Python distribution including Tcl/Tk from <a href="https://www.python.org/downloads/macos/">python.org</a> or the Tk package matching your Python version.</p>
+<p>In <strong>Tools and apps → Rant Connect Local</strong>, download and extract the archive. Run <code>Start.command</code> on Mac. If needed:</p>
+<pre><code class="language-bash">chmod +x Start.command
+./Start.command
+</code></pre>
+<p>Choose another Python with <code>PYTHON_BIN=/full/path/to/python3 ./Start.command</code>. First launch creates a separate <code>.venv</code> and installs dependencies. It downloads no models.</p>
+<p>On Debian/Ubuntu with a graphical X11 session:</p>
+<pre><code class="language-bash">sudo apt-get install python3-venv python3-tk python3-dev scrot xclip
+sh Start.command
+</code></pre>
+<p>Wayland and a native Windows Rant host are not supported in this alpha.</p>
+<h3>Pair and use</h3>
+<ol>
+<li>Check that the companion shows the same local address as Rant, for example <code>http://127.0.0.1:4321</code>.</li>
+<li>In Rant click <strong>Create pairing code</strong>, then enter it in the companion. The code expires in five minutes and can be used once.</li>
+<li>On Mac grant <strong>Screen Recording</strong> and <strong>Accessibility</strong> permissions to the Python/Terminal running the companion, then restart it if required.</li>
+<li>Explicitly enable control in the companion window. It starts with control off every time.</li>
+<li>Choose an API or local API-server model supporting both <strong>images and tool calls</strong>. The built-in text-only MLX path does not support desktop tools yet.</li>
+<li>Start with a simple request, such as asking which window is visible, then try a small task in a test document.</li>
+</ol>
+<p>Connect can capture the main monitor, click, type, send shortcuts and scroll. Screenshots go to your chosen model, including its external provider when using a remote API. Model-specific vision accuracy needs local testing. This is not a shell or SSH interface.</p>
+<h3>Stop and revoke</h3>
+<p>Stop in the companion or close its window to disable execution. <strong>Stop</strong> in chat ends the task and cancels pending commands; it cannot undo an action already performed. Move the mouse to the main monitor&#x27;s top-left corner for PyAutoGUI&#x27;s fail-safe at the next control call. Remove a computer in Rant to revoke its token; pairing again requires a new code.</p>
+<p>On connection errors, control turns off. Received commands are not automatically redelivered. If a response is lost, an action may have happened: inspect the screen before repeating it. Only one paired computer may be armed at once.</p>
+<p>Tokens live under <code>~/.rant-connect-local/</code>, separately for each local address. The downloaded companion ZIP has an address but no pairing token. If you change ports, download it again or set <code>RANT_LOCAL_URL=http://127.0.0.1:NEW_PORT</code> and pair again.</p>
+<h2>MCP</h2>
+<p>Enter a name, public HTTPS MCP Streamable HTTP endpoint and optional token in <strong>Tools and apps</strong>. Click <strong>Check and list actions</strong>, then allow only the actions you need. Connection discovery does not automatically grant tool access.</p>
+<p>Text results and Bearer tokens are supported; OAuth and local stdio transport are not. MCP works with API-connected models, including compatible local servers, that support tool calls. You can revoke permissions or remove the connection at any time.</p>
+<h2>Verification</h2>
+<p>Automated tests cover one-use/expired codes, revocation, cancellation, no command redelivery, coordinate conversion and HTTP relay/downloads with a synthetic client. They do not operate the real desktop. Test your selected model and OS permissions locally. This release provides source launchers, not signed native installers.</p></section></div><div data-language="ru" hidden><section data-anchor="install"><h1>Rant Agent — установка с нуля</h1>
 <p>Это локальное приложение для одного пользователя. Регистрация в Rant и подписка не нужны. За сторонние API ты платишь своему провайдеру; локальные модели используют ресурсы компьютера.</p>
 <h2>1. Подготовь компьютер</h2>
 <ul>
@@ -135,7 +250,7 @@ PARAMETER num_ctx 8192
 <table><thead><tr><th>Симптом</th><th>Что проверить</th></tr></thead><tbody><tr><td><code>command not found</code></td><td>Python/Node/Git установлены и доступны в новом Терминале</td></tr><tr><td>Нельзя создать <code>.venv</code></td><td>На Linux установлен пакет <code>python3-venv</code>; текущая папка доступна для записи</td></tr><tr><td>Порт 4311/4312 занят</td><td><code>./start.sh --port 4321 --preview-port 4322</code>; открой адрес, напечатанный в Терминале</td></tr><tr><td><code>Permission denied</code> у start.sh</td><td><code>chmod +x start.sh Start-Rant.command</code></td></tr><tr><td>Qwen требует настройки</td><td>Установи requirements-mlx.txt в <strong>то же</strong> <code>.venv</code>, проверь путь и формат весов</td></tr><tr><td>Модель очень медленная / завершается</td><td>Закрой тяжёлые приложения, сократи контекст или выбери меньшую модель; ошибки загрузки видны в настройках</td></tr><tr><td>Ollama/LM Studio не отвечает</td><td>Проверь сервер вне Rant, порт и список установленных моделей</td></tr><tr><td>HTTP 401/403</td><td>Ключ или права доступа провайдера; локальный сервер может иметь собственную авторизацию</td></tr><tr><td>HTTP 404</td><td>Неверный базовый адрес, формат API или точное имя модели</td></tr><tr><td>Браузер не подключён</td><td>Проверь путь расширения, ↻, разрешения и то, что Chrome открыт</td></tr><tr><td>Медиа требует проверки</td><td>Проверь ID в сервисе; запрос не повторялся автоматически. Провайдер мог принять и оплатить его до разрыва связи</td></tr><tr><td>Старые цвета/логотип</td><td>Обнови вкладку Cmd+R / Ctrl+R после сборки</td></tr></tbody></table>
 <p>В bug report укажи ОС, версии Python/Node, выбранный движок, шаги и текст ошибки. Удали ключи, личные пути и содержимое переписок. Это ранняя альфа: не все модели, сайты и системы проверены.</p>
 <h2>Browser, desktop and MCP connectors</h2>
-<p><a href="https://github.com/darkdi/rant-agent/blob/main/docs/CONNECTORS.md">Chrome, Rant Connect Local and MCP — setup guide</a>. Personal connector archives are available in <strong>Инструменты и приложения</strong>. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.</p></section><section id="media"><h1>Изображения и видео / Media generation</h1>
+<p><a href="https://github.com/darkdi/rant-agent/blob/main/docs/CONNECTORS.md">Chrome, Rant Connect Local and MCP — setup guide</a>. Personal connector archives are available in <strong>Инструменты и приложения</strong>. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.</p></section><section data-anchor="media"><h1>Изображения и видео / Media generation</h1>
 <p>Студия открывается кнопками <strong>Создать картинку</strong> и <strong>Создать видео</strong> на стартовом экране либо <strong>Картинки / Видео</strong> в меню. Она работает отдельно от чат-модели. Qwen, Ollama и обычный Chat Completions API сами по себе не превращаются в генератор изображений или видео.</p>
 <h2>Как устроена студия</h2>
 <ol>
@@ -184,7 +299,7 @@ PARAMETER num_ctx 8192
 <h2>Что проверено в первом выпуске</h2>
 <p>Проверяются контрактные тесты адаптеров, сохранение результатов, исключение ключей из публичного состояния, отсутствие повторной отправки и обработка ошибок. Реальная генерация через платные медиа-API и через установленный ComfyUI не включается в автоматические тесты: она требует твоего ключа, модели/весов и может стоить денег. Не считай поддержку адаптера гарантией совместимости любой модели.</p>
 <h2>English summary</h2>
-<p>Use a separate media connection. Images API accepts <code>POST /images/generations</code>; Replicate accepts model predictions or versioned predictions; local ComfyUI accepts an API workflow containing <code>__PROMPT__</code>. The app submits once, polls asynchronous work, and stores the first supported image/video locally. Keys are never forwarded to output storage URLs. No paid media generation or real ComfyUI execution is part of the offline test suite.</p></section><section id="connectors"><h1>Браузер, компьютер и внешние сервисы</h1>
+<p>Use a separate media connection. Images API accepts <code>POST /images/generations</code>; Replicate accepts model predictions or versioned predictions; local ComfyUI accepts an API workflow containing <code>__PROMPT__</code>. The app submits once, polls asynchronous work, and stores the first supported image/video locally. Keys are never forwarded to output storage URLs. No paid media generation or real ComfyUI execution is part of the offline test suite.</p></section><section data-anchor="connectors"><h1>Браузер, компьютер и внешние сервисы</h1>
 <p>Rant Agent Local работает на macOS/Linux. Всё ниже относится к <strong>локальной открытой версии</strong>, а не к облачному Rant Connect для ai.rant.ae. Аккаунт Rant и подписка не нужны. API выбранной модели оплачивается у её провайдера.</p>
 <h2>Chrome</h2>
 <ol>
@@ -236,4 +351,4 @@ PARAMETER num_ctx 8192
 <p>В <strong>Инструментах и приложениях</strong> введи название, публичный HTTPS-адрес MCP Streamable HTTP и токен при необходимости. Нажми <strong>Проверить и показать действия</strong>, затем отметь нужные инструменты. Проверка подключения сама не выдаёт разрешение на все действия.</p>
 <p>Поддерживаются текстовые результаты и Bearer-токены. OAuth и локальный транспорт stdio пока не реализованы. MCP доступен моделям, подключённым через API, включая совместимый локальный сервер; модель должна поддерживать вызовы инструментов. Разрешения можно снять, а подключение удалить.</p>
 <h2>Проверки этой версии</h2>
-<p>Проверяются одноразовость и срок кода, отзыв, остановка, отсутствие повторной доставки команды, перевод координат снимка, а также HTTP-подключение тестового клиента и скачивание архивов. Автотесты используют искусственный снимок и не управляют настоящим рабочим столом. Реальное управление конкретной моделью требует проверки на своей ОС с выданными разрешениями. Подписанных нативных установщиков в этом локальном выпуске нет.</p></section></html>
+<p>Проверяются одноразовость и срок кода, отзыв, остановка, отсутствие повторной доставки команды, перевод координат снимка, а также HTTP-подключение тестового клиента и скачивание архивов. Автотесты используют искусственный снимок и не управляют настоящим рабочим столом. Реальное управление конкретной моделью требует проверки на своей ОС с выданными разрешениями. Подписанных нативных установщиков в этом локальном выпуске нет.</p></section></div><script>const select=document.getElementById('language');function choose(value){const lang=value==='ru'?'ru':'en';document.documentElement.lang=lang;select.value=lang;document.querySelectorAll('[data-language]').forEach(group=>{group.hidden=group.dataset.language!==lang;group.querySelectorAll('section').forEach(section=>{section.id=group.hidden?'':section.dataset.anchor})});document.querySelectorAll('[data-nav]').forEach(link=>{link.textContent=(lang==='ru'?['Установка','Картинки и видео','Браузер и компьютер']:['Installation','Images and video','Browser and computer'])[Number(link.dataset.nav)]});try{localStorage.setItem('rant-language',lang)}catch{}if(location.hash)document.getElementById(location.hash.slice(1))?.scrollIntoView()}let saved='en';try{saved=localStorage.getItem('rant-language')||'en'}catch{}choose(saved);select.addEventListener('change',()=>choose(select.value));</script></html>

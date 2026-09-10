@@ -2,7 +2,7 @@
 import ast
 from pathlib import Path
 import base64,io,platform,time,unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from PIL import Image
 
 source=Path(__file__).resolve().parents[1]/'desktop-companion/rant_connect.py'
@@ -14,7 +14,8 @@ class ControllerTests(unittest.TestCase):
  def setUp(self):
   self.gui=Mock();self.gui.screenshot.return_value=Image.new('RGB',(2800,2000));self.gui.size.return_value=(1400,1000);self.gui.KEYBOARD_KEYS=['ctrl','v','command']
   self.clipboard=Mock();self.controller=namespace['Controller'](self.gui,self.clipboard)
- def test_retina_coordinates_require_fresh_screen(self):
+ @patch("time.monotonic", return_value=10)
+ def test_retina_coordinates_require_fresh_screen(self, clock):
   with self.assertRaises(ValueError):self.controller.execute('desktop_click',{'x':1,'y':1})
   image=self.controller.execute('desktop_screenshot',{});self.assertEqual((image['width'],image['height']),(1400,1000))
   self.controller.execute('desktop_click',{'x':700,'y':500});self.assertEqual(self.gui.click.call_args.args,(700,500))

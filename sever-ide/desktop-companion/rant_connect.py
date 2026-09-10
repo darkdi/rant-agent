@@ -27,18 +27,18 @@ class Controller:
    import pyautogui as gui
   if clipboard is None:
    import pyperclip as clipboard
-  self.gui=gui;self.clipboard=clipboard;self.gui.FAILSAFE=True;self.gui.PAUSE=.15;self.screen=None;self.stamp=0
+  self.gui=gui;self.clipboard=clipboard;self.gui.FAILSAFE=True;self.gui.PAUSE=.15;self.screen=None;self.stamp=None
  def execute(self,action,args):
   g=self.gui
   if action=='desktop_screenshot':
    shot=g.screenshot();native=shot.size;shot.thumbnail((1400,1000));self.screen=(native,shot.size);self.stamp=time.monotonic();out=io.BytesIO();shot.convert('RGB').save(out,format='JPEG',quality=65)
    return {'image':'data:image/jpeg;base64,'+base64.b64encode(out.getvalue()).decode(),'width':shot.width,'height':shot.height,'platform':platform.system(),'note':'Координаты относятся к этому снимку.'}
   if action=='desktop_click':
-   if not self.screen or time.monotonic()-self.stamp>60:raise ValueError('Сначала получи новый снимок экрана.')
+   if not self.screen or self.stamp is None or time.monotonic()-self.stamp>60:raise ValueError('Сначала получи новый снимок экрана.')
    x,y=args.get('x'),args.get('y');native,size=self.screen
    if type(x) is not int or type(y) is not int or not(0<=x<size[0] and 0<=y<size[1]):raise ValueError('Точка вне снимка.')
    # PyAutoGUI coordinates are logical points (Retina differs from screenshot pixels).
-   width,height=g.size();g.click(round(x*width/size[0]),round(y*height/size[1]),clicks=2 if args.get('double') is True else 1,interval=.12);self.stamp=0
+   width,height=g.size();g.click(round(x*width/size[0]),round(y*height/size[1]),clicks=2 if args.get('double') is True else 1,interval=.12);self.stamp=None
   elif action=='desktop_type':
    text=args.get('text')
    if not isinstance(text,str) or len(text)>8000:raise ValueError('Текст слишком длинный.')
@@ -46,15 +46,15 @@ class Controller:
    try:
     self.clipboard.copy(text);g.hotkey('command' if platform.system()=='Darwin' else 'ctrl','v');time.sleep(.2)
    finally:self.clipboard.copy(old)
-   self.stamp=0
+   self.stamp=None
   elif action=='desktop_hotkey':
    keys=args.get('keys')
    if not isinstance(keys,list) or not 1<=len(keys)<=3 or any(not isinstance(k,str) or k not in g.KEYBOARD_KEYS for k in keys):raise ValueError('Неизвестные клавиши.')
-   g.hotkey(*keys);self.stamp=0
+   g.hotkey(*keys);self.stamp=None
   elif action=='desktop_scroll':
    steps=args.get('steps')
    if type(steps) is not int or not -10<=steps<=10:raise ValueError('Некорректная прокрутка.')
-   g.scroll(steps);self.stamp=0
+   g.scroll(steps);self.stamp=None
   else:raise ValueError('Действие не поддерживается.')
   return {'performed':True,'note':'Действие отправлено системе. Проверь результат новым снимком.'}
 

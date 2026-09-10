@@ -545,5 +545,9 @@
   "с": "s",
   "из": "of",
   "Сегодня доступно": "Available today:",
-  "кр. Дневной запас обновляется в 03:00 МСК.": "credits. Daily allowance refreshes at 03:00 Moscow time."
+  "кр. Дневной запас обновляется в 03:00 МСК.": "credits. Daily allowance refreshes at 03:00 Moscow time.",
+  "Профиль — это имя, инструкции и режим работы, а не отдельная модель. Профили сохраняются локально и доступны во всех проектах этой установки.": "A profile is a name, instructions, and a working mode, not a separate model. Profiles are saved locally and available across all projects in this installation.",
+  "Новый профиль": "New profile",
+  "Редактировать профиль": "Edit profile",
+  "Сохранить профиль": "Save profile"
 }

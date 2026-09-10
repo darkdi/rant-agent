@@ -302,6 +302,8 @@ export default function Home() {
         localStorage.setItem('rant-chat-ui', '2');
         localStorage.setItem('rant-mode', 'chat');
       }
+      const rememberedAgent = localStorage.getItem('rant-agent-id');
+      if (rememberedAgent) setAgentId(rememberedAgent);
       if (window.innerWidth < 900) setSidebarOpen(false);
       const saved = localStorage.getItem(modelStorageKey) || (!account.cloud ? localStorage.getItem('sever-model') : null);
       if (saved) setSelected(saved);
@@ -316,6 +318,12 @@ export default function Home() {
   useEffect(() => {
     if (state.profiles.length && !state.profiles.some(p => p.id === selected)) setSelected(state.profiles[0].id);
   }, [state.profiles, selected]);
+  useEffect(() => {
+    if (state.agents?.length && !state.agents.some(a => a.id === agentId)) {
+      setAgentId('assistant');
+      setMode('chat');
+    }
+  }, [state.agents, agentId]);
   useEffect(() => {
     if (!state.active || !token) return;
     const id = state.active;
@@ -483,8 +491,9 @@ export default function Home() {
     if (token)
       try {
         localStorage.setItem('rant-mode', mode);
+        localStorage.setItem('rant-agent-id', agentId);
       } catch {}
-  }, [mode, token]);
+  }, [mode, agentId, token]);
   useEffect(() => {
     if (token)
       try {
@@ -537,11 +546,7 @@ export default function Home() {
       setNotice('');
       setTask('');
       setFollow(true);
-      if (!id) {
-        setMode('chat');
-        setAgentId('assistant');
-        setShowFiles(false);
-      }
+
       const next = await refresh();
       if (next.runs.length)
         setRun(await api<Run>('run?id=' + next.runs.at(-1)!.id));
@@ -1376,7 +1381,7 @@ export default function Home() {
                   >
                     <span>
                       {
-                        {
+                        (/^[a-f0-9]{32}$/.test(agentId) ? state.agents?.find(a => a.id === agentId)?.name : null) || {
                           chat: t("Чат"),
                           browser: t("Браузер"),
                           edit: t("Работа с файлами"),

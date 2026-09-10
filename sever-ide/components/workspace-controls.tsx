@@ -369,12 +369,15 @@ export default function WorkspaceControls({
           )}
           {panel === 'agents' && (
             <>
+              <p className="form-help">{t("Профиль — это имя, инструкции и режим работы, а не отдельная модель. Профили сохраняются локально и доступны во всех проектах этой установки.")}</p>
               <div className="project-list">
                 {state.agents?.map((a) => (
                   <button
                     key={a.id}
+                    disabled={busy || disabled}
                     onClick={() => {
                       onSelectAgent(a);
+                      setAgent(/^[a-f0-9]{32}$/.test(a.id) ? { ...a } : { id: '', name: t("Мой агент"), mode: 'read', instruction: '' });
                       setNotice(t("Выбран агент: ") + a.name);
                     }}
                   >
@@ -395,13 +398,16 @@ export default function WorkspaceControls({
                   </button>
                 ))}
               </div>
-              <h3>{t("Создать своего агента")}</h3>
+              <Button disabled={busy || disabled} onClick={() => setAgent({ id: '', name: t("Мой агент"), mode: 'read', instruction: '' })}>{t("Новый профиль")}</Button>
+              <h3>{agent.id ? t("Редактировать профиль") : t("Создать своего агента")}</h3>
               <label>{t("Название")}<input
+                  maxLength={80}
                   value={agent.name}
                   onChange={(e) => setAgent({ ...agent, name: e.target.value })}
                 />
               </label>
               <label>{t("Инструкции")}<textarea
+                  maxLength={6000}
                   value={agent.instruction}
                   onChange={(e) =>
                     setAgent({ ...agent, instruction: e.target.value })
@@ -422,23 +428,18 @@ export default function WorkspaceControls({
               </Tabs>
               <p className="form-help">{t("Инструкции не расширяют права. Для сети включи интернет в «Доступах»; для правок — запись в папку.")}</p>
               <Button
-                disabled={busy || !agent.name.trim()}
+                disabled={busy || disabled || !agent.name.trim()}
                 onClick={() =>
                   safely(async () => {
                     const saved = await api<Agent>('agent', agent);
                     await onRefresh();
                     onSelectAgent(saved);
-                    setAgent({
-                      id: '',
-                      name: t("Мой агент"),
-                      instruction: '',
-                      mode: 'read',
-                    });
+                    setAgent(saved);
                     setNotice(t("Агент сохранён и выбран"));
                   })
                 }
               >
-                <Plus size={14} />{t("Создать агента")}</Button>
+                <Plus size={14} />{agent.id ? t("Сохранить профиль") : t("Создать агента")}</Button>
             </>
           )}
           {panel === 'release' && (

@@ -10,7 +10,6 @@ import {
   ArrowDown,
   Copy,
   Pencil,
-  Lightbulb,
   Sparkles,
   FolderOpen,
   FileCode2,
@@ -882,9 +881,9 @@ export default function Home() {
                   <button onClick={() => setMediaKind('video')}><Video size={18}/><span>Создать видео</span></button>
                   {[
                     {
-                      icon: Lightbulb,
-                      title: 'Придумать идею',
-                      text: 'Помоги придумать идею для нового проекта. Давай начнём с моих интересов.',
+                      icon: Code2,
+                      title: 'Работа с кодом',
+                      text: 'Помоги с кодом проекта. Сначала уточни, что нужно создать, исправить или улучшить.',
                     },
                     {
                       icon: Pencil,
@@ -906,7 +905,12 @@ export default function Home() {
                       key={item.title}
                       onClick={() => {
                         setTask(item.text);
-                        if (i === 3) {
+                        if (i === 0) {
+                          setMode('edit');
+                          setAgentId('developer');
+                          setShowFiles(true);
+                          setView('code');
+                        } else if (i === 3) {
                           setMode('browser');
                           setAgentId('browser');
                         }

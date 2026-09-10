@@ -223,3 +223,7 @@ git pull --ff-only
 | Старые цвета/логотип | Обнови вкладку Cmd+R / Ctrl+R после сборки |
 
 В bug report укажи ОС, версии Python/Node, выбранный движок, шаги и текст ошибки. Удали ключи, личные пути и содержимое переписок. Это ранняя альфа: не все модели, сайты и системы проверены.
+
+## Browser, desktop and MCP connectors
+
+[Chrome, Rant Connect Local and MCP — setup guide](CONNECTORS.md). Personal connector archives are available in **Инструменты и приложения**. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.

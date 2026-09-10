@@ -1,4 +1,5 @@
 """Local-only IDE bridge. File writes are confined, version checked, and journaled."""
+import io,zipfile
 import argparse,fcntl,hashlib,json,mimetypes,os,re,secrets,shutil,signal,subprocess,sys,threading,time,uuid
 from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
 from pathlib import Path
@@ -16,6 +17,7 @@ from capabilities import prepare_release
 from auto_context import options as context_options
 from integrations import Connections
 from media_local import MediaStudio
+from devices import Devices,AuthError
 HERE=Path(__file__).resolve().parents[1];DATA=Path(os.environ.get('RANT_DATA_DIR',str(HERE/'.local'))).resolve();DATA.mkdir(parents=True,exist_ok=True,mode=0o700)
 CLOUD=False
 os.environ.pop('RANT_MANAGED_URL',None)
@@ -33,6 +35,7 @@ RUNS=DATA/'runs';RUNS.mkdir(exist_ok=True);RELEASES=DATA/'releases';RELEASES.mkd
 CREDENTIALS=CredentialStore(DATA/'credentials')
 LOCAL=LocalRuntime(DATA,HERE/'backend/worker.py')
 MEDIA=MediaStudio(DATA)
+DEVICES=Devices(DATA/'devices')
 class Conflict(ValueError):pass
 
 def conversation_id(root=None):return load(DATA/'conversations.json',{}).get(str(root or project()),'legacy')
@@ -216,7 +219,7 @@ def launch(data):
  try:
   if p['kind']=='local':proc=LOCAL.submit(config)
   else:
-   proc=subprocess.Popen([sys.executable,'-u',str(HERE/'backend/worker.py')],stdin=subprocess.PIPE,stdout=handle,stderr=subprocess.STDOUT,text=True,start_new_session=True)
+   proc=subprocess.Popen([sys.executable,'-u',str(HERE/'backend/worker.py')],stdin=subprocess.PIPE,stdout=handle,stderr=subprocess.STDOUT,text=True,start_new_session=True,env={**os.environ,'RANT_DESKTOP_URL':f'http://127.0.0.1:{PORT}','RANT_DESKTOP_TOKEN':TOKEN})
    proc.stdin.write(json.dumps(config)+'\n');proc.stdin.close()
   ACTIVE={'id':id,'process':proc}
  except Exception:
@@ -228,6 +231,16 @@ class Handler(BaseHTTPRequestHandler):
  def log_message(self,*args):pass
  def send_json(self,obj,status=200):
   data=json.dumps(obj,ensure_ascii=False).encode();self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+ def connector_download(self,kind):
+  if kind not in {'desktop','browser'}:raise ValueError('Неизвестное подключение')
+  if kind=='browser':ensure_bridge()
+  folder=HERE/('desktop-companion' if kind=='desktop' else 'chrome-extension')
+  names=['rant_connect.py','Start.command','requirements.txt','README.md'] if kind=='desktop' else ['manifest.json','config.js','background.js','navigation.js','page.js','controller.html','controller.js','popup.html','popup.js','style.css',*[f'icons/icon-{size}.png' for size in (16,32,48,128)]]
+  buffer=io.BytesIO()
+  with zipfile.ZipFile(buffer,'w',zipfile.ZIP_DEFLATED,strict_timestamps=False) as archive:
+   for name in names:archive.write(folder/name,name)
+   if kind=='desktop':archive.writestr('server.json',json.dumps({'url':f'http://127.0.0.1:{PORT}'}))
+  raw=buffer.getvalue();self.send_response(200);self.send_header('Content-Type','application/zip');self.send_header('Content-Length',str(len(raw)));self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(raw)
  def stream_run(self,id):
   p=run_path(id)
   with MUTEX:
@@ -260,11 +273,13 @@ class Handler(BaseHTTPRequestHandler):
    if route=='/bridge/session':self.guard(False);return self.send_json({'token':TOKEN})
    if route.startswith('/bridge/'):
     self.guard()
+    if route=='/bridge/connector-download':return self.connector_download(q.get('kind',[''])[0])
     if route=='/bridge/run-stream':return self.stream_run(q.get('id',[''])[0])
     if route=='/bridge/media-file':
      target=MEDIA.file(q.get('id',[''])[0]);raw=target.read_bytes();self.send_response(200);self.send_header('Content-Type',mimetypes.guess_type(target)[0] or 'application/octet-stream');self.send_header('Content-Length',str(len(raw)));self.send_header('X-Content-Type-Options','nosniff');self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(raw);return
     with MUTEX:
      if route=='/bridge/state':result=state()
+     elif route=='/bridge/devices':result=DEVICES.list('local')
      elif route=='/bridge/trash':result=library.trash(sys.modules[__name__])
      elif route=='/bridge/attachment':
       m,folder=attachments.load_attachment(q.get('id',[''])[0],project(),conversation_id(project()));raw=(folder/'data').read_bytes();self.send_response(200);self.send_header('Content-Type',m['mime']);self.send_header('Content-Length',str(len(raw)));self.send_header('X-Content-Type-Options','nosniff');self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(raw);return
@@ -303,15 +318,28 @@ class Handler(BaseHTTPRequestHandler):
    if target.is_dir():target=target/'index.html'
    if not target.is_file():return self.send_json({'error':'Сначала собери интерфейс: npm run build'},404)
    data=target.read_bytes();self.send_response(200);self.send_header('Content-Type',mimetypes.guess_type(target)[0] or 'application/octet-stream');self.send_header('X-Content-Type-Options','nosniff');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+  except AuthError as e:self.send_json({'error':str(e)},e.status)
   except PermissionError as e:self.send_json({'error':str(e)},403)
   except (ValueError,OSError,KeyError) as e:self.send_json({'error':str(e)},400)
  def do_POST(self):
   try:
-   self.guard();n=int(self.headers.get('Content-Length','0'))
-   if not 0<n<=(12*1024*1024 if self.path=='/bridge/attachment-upload' else 150000):raise ValueError('Запрос слишком большой или пустой')
+   route=urlsplit(self.path).path
+   self.guard(not route.startswith('/device/'));n=int(self.headers.get('Content-Length','0'))
+   if not 0<n<=(12*1024*1024 if route in {'/bridge/attachment-upload','/device/result'} else 150000):raise ValueError('Запрос слишком большой или пустой')
    d=json.loads(self.rfile.read(n));route=urlsplit(self.path).path
    if not isinstance(d,dict):raise ValueError('Ожидается объект')
+   if route.startswith('/device/'):
+    token=self.headers.get('Authorization','').removeprefix('Bearer ')
+    if route=='/device/connect':return self.send_json(DEVICES.connect(d.get('code'),d.get('name','Компьютер')))
+    if route=='/device/poll':return self.send_json(DEVICES.poll(token,d.get('armed')))
+    if route=='/device/result':return self.send_json(DEVICES.result(token,d.get('id'),d.get('result')))
+    return self.send_json({'error':'Не найдено'},404)
+   if route=='/bridge/desktop/status':return self.send_json({'ready':sum(x['online'] and x['armed'] for x in DEVICES.list('local'))==1})
+   if route=='/bridge/desktop/cancel':DEVICES.stop('local');return self.send_json({'ok':True})
+   if route=='/bridge/desktop':return self.send_json(DEVICES.call('local',d.get('action'),d.get('arguments')))
    with MUTEX:
+    if route=='/bridge/device-pair':return self.send_json(DEVICES.pair('local'))
+    if route=='/bridge/device-revoke':DEVICES.revoke('local',d.get('id'));return self.send_json({'ok':True})
     if route=='/bridge/media-profile':return self.send_json(MEDIA.save_profile(d))
     if route=='/bridge/media-create':return self.send_json(MEDIA.create(d))
     if route=='/bridge/integrations':
@@ -343,6 +371,7 @@ class Handler(BaseHTTPRequestHandler):
      if pending.get('action')=='question' and decision!='reject' and not response.strip():raise ValueError('Напиши ответ агенту')
      persist(p/'browser-decision.json',{'id':pending['id'],'decision':decision,'response':response});result={'ok':True}
     elif route=='/bridge/stop':
+     DEVICES.stop('local')
      if ACTIVE and ACTIVE['id']==d.get('id'):
       proc=ACTIVE['process'];os.killpg(proc.pid,signal.SIGINT)
       if os.environ.get('RANT_MANAGED_URL'):
@@ -426,6 +455,7 @@ class Handler(BaseHTTPRequestHandler):
      finally:lock.close()
     else:return self.send_json({'error':'Не найдено'},404)
    self.send_json(result)
+  except AuthError as e:self.send_json({'error':str(e)},e.status)
   except PermissionError as e:self.send_json({'error':str(e)},403)
   except Conflict as e:self.send_json({'error':str(e)},409)
   except (ValueError,KeyError,OSError,TypeError) as e:self.send_json({'error':str(e)},400)
@@ -479,6 +509,7 @@ def main():
  try:server.serve_forever()
  except KeyboardInterrupt:pass
  finally:
+  DEVICES.stop('local')
   if ACTIVE and ACTIVE['process'].poll() is None:
    proc=ACTIVE['process'];os.killpg(proc.pid,signal.SIGINT)
    if os.environ.get('RANT_MANAGED_URL'):

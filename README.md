@@ -80,3 +80,7 @@ Try one real task, report the model and reproduction steps, or improve the first
 ## License
 
 Rant Agent source is [MIT licensed](LICENSE). Dependencies and model weights retain their own licenses. Model weights are not included. Generated content is subject to the model/provider terms; no rights or output quality are guaranteed by this project.
+
+## Browser, desktop and MCP connectors
+
+[Chrome, Rant Connect Local and MCP — setup guide](docs/CONNECTORS.md). Personal connector archives are available in **Инструменты и приложения**. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.

@@ -589,7 +589,7 @@ export default function Home() {
             setMode(agent.mode);
           }}
         />
-        <IntegrationsPanel api={api} />
+        <IntegrationsPanel api={api} token={token} />
         <div className="media-nav"><button onClick={() => setMediaKind('image')}><ImagePlus size={17}/> Картинки</button><button onClick={() => setMediaKind('video')}><Video size={17}/> Видео</button></div>
         {account.cloud && <CloudSubscription />}
         <AccountMenu />

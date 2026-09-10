@@ -72,3 +72,7 @@ git pull --ff-only
 ```
 
 If a port is occupied, use the alternative-port command above. If a model fails, check it in Ollama/LM Studio directly or inspect Qwen's setup error. API errors usually require checking endpoint, model identifier, format or provider credentials. For full troubleshooting and screenshots of UI labels, use the [Russian guide](INSTALL_RU.md). See [security](../SECURITY.md) before enabling external tools.
+
+## Browser, desktop and MCP connectors
+
+[Chrome, Rant Connect Local and MCP — setup guide](CONNECTORS.md). Personal connector archives are available in **Инструменты и приложения**. Desktop control requires a vision/tool-capable model and explicit activation in the visible companion window.

@@ -1,0 +1,25 @@
+# Personal runtime data — never publish
+.venv/
+.venv-*/
+.local/
+projects/
+work/
+models/
+*.safetensors
+*.gguf
+.env*
+!.env.example
+**/chrome-extension/config.js
+local-assistant/model*.json
+PROJECT_CONTEXT.md
+# Generated files
+node_modules/
+dist/
+.next/
+.wrangler/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.DS_Store
+*.log
+release/

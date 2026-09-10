@@ -1,0 +1,185 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Установка и помощь — Rant Agent</title><link rel="icon" href="/favicon.svg"><style>:root{color-scheme:light dark}body{font:16px/1.75 system-ui;max-width:960px;margin:40px auto;padding:0 24px;background:light-dark(#fafbfe,#17191d);color:light-dark(#172035,#f5f6fa)}a{color:light-dark(#0865f5,#6ea7ff)}h1,h2,h3{line-height:1.3;margin-top:2em}pre{padding:18px;overflow:auto;border:1px solid #8994a855;border-radius:12px;background:light-dark(#f0f3f9,#111318)}code{font-size:.9em}table{border-collapse:collapse;display:block;overflow:auto}td,th{padding:10px;border:1px solid #8994a855}nav{display:flex;gap:20px;flex-wrap:wrap}section{scroll-margin-top:20px}</style><nav><a href="/">← Rant Agent</a><a href="#install">Установка</a><a href="#media">Картинки и видео</a><a href="https://github.com/darkdi/rant-agent">GitHub</a></nav><section id="install"><h1>Rant Agent — установка с нуля</h1>
+<p>Это локальное приложение для одного пользователя. Регистрация в Rant и подписка не нужны. За сторонние API ты платишь своему провайдеру; локальные модели используют ресурсы компьютера.</p>
+<h2>1. Подготовь компьютер</h2>
+<ul>
+<li><strong>macOS или Linux.</strong> Нативная Windows в этой альфе не поддерживается. WSL пока не проверен.</li>
+<li><strong>Python 3.12 или новее</strong>, с модулем <code>venv</code>.</li>
+<li><strong>Node.js 22.13 или новее</strong>, включая npm.</li>
+<li><strong>Git</strong> для скачивания и обновлений.</li>
+<li>Обычный браузер для интерфейса. Для браузерного агента нужен <strong>Chrome 120+</strong>.</li>
+</ul>
+<p>Для API-режима не нужно скачивать модель. Объём памяти для локальной генерации зависит от модели, контекста и других приложений. Для Qwen 9B разумно начинать с Mac с 16 ГБ памяти, лучше иметь запас; это ориентир, не гарантия работы любого контекста. При нехватке памяти используй меньшую модель в Ollama. Видео требует существенно больше ресурсов, чем чат.</p>
+<h3>macOS</h3>
+<p>Установи Python с <a href="https://www.python.org/downloads/">python.org</a> и Node.js с <a href="https://nodejs.org/en/download">nodejs.org</a>. Git доступен через инструменты разработчика Apple или <a href="https://git-scm.com/downloads">git-scm.com</a>.</p>
+<p>Если Homebrew уже установлен, можно выполнить:</p>
+<pre><code class="language-bash">brew install python@3.12 node git
+</code></pre>
+<p>Проверь версии в новом окне Терминала:</p>
+<pre><code class="language-bash">python3 --version
+node --version
+npm --version
+git --version
+</code></pre>
+<p>Если <code>python3</code> всё ещё старый, используй нужный интерпретатор явно: <code>PYTHON_BIN=python3.12 ./start.sh</code>.</p>
+<h3>Linux</h3>
+<p>Установи Git, Python 3.12+ и пакет venv через менеджер пакетов своего дистрибутива. Например, <strong>Ubuntu 24.04</strong>:</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install git python3 python3-venv python3-pip
+</code></pre>
+<p>Node.js установи по <a href="https://nodejs.org/en/download">официальной инструкции</a>, затем проверь <code>node --version</code>. Не все дистрибутивы поставляют нужную версию Node/Python по умолчанию. Реальный локальный запуск этого выпуска проверен на macOS Apple Silicon; Linux проверяется дополнительно в CI и не означает проверку каждого дистрибутива/драйвера GPU.</p>
+<h2>2. Скачай приложение</h2>
+<pre><code class="language-bash">git clone https://github.com/darkdi/rant-agent.git
+cd rant-agent
+./start.sh
+</code></pre>
+<p>Первый запуск создаёт изолированное окружение <code>.venv</code>, устанавливает зависимости и собирает интерфейс. Нужен интернет; веса моделей не скачиваются. После сборки откроется <strong><a href="http://127.0.0.1:4311">http://127.0.0.1:4311</a></strong>.</p>
+<p>Оставь Терминал открытым. Для остановки нажми <strong>Ctrl+C</strong>. При следующем запуске выполни <code>./start.sh</code> из той же папки. На Mac можно открыть <code>Start-Rant.command</code>.</p>
+<p>Если скачал ZIP через GitHub, распакуй его, открой Терминал в полученной папке и выполни:</p>
+<pre><code class="language-bash">chmod +x start.sh Start-Rant.command
+./start.sh
+</code></pre>
+<p><code>./start.sh --check</code> только проверяет предпосылки и порты, ничего не устанавливает. <code>--no-open</code> отключает автоматическое открытие браузера. <code>--no-browser</code> запускает без моста расширения.</p>
+<h2>3. Выбери один способ подключения модели</h2>
+<p><strong>Ollama не обязательна.</strong> Достаточно одного варианта: Ollama, LM Studio, встроенная Qwen или API. Подключения чата и генерации картинок/видео отдельные.</p>
+<h3>Вариант A. Ollama — локальные модели</h3>
+<ol>
+<li>Скачай и установи <a href="https://ollama.com/download">Ollama</a>, запусти приложение.</li>
+<li>Скачай модель в Терминале:</li>
+</ol>
+<pre><code class="language-bash">ollama pull qwen3:4b
+ollama list
+</code></pre>
+<ol start="3">
+<li>Проверь ответ без Rant:</li>
+</ol>
+<pre><code class="language-bash">ollama run qwen3:4b
+</code></pre>
+<p>Напиши короткий вопрос. Для выхода из чата введи <code>/bye</code>.
+4. Если служба не запущена, выполни <code>ollama serve</code> в отдельном окне. Если пишет, что порт занят, Ollama, вероятно, уже работает; вторую службу запускать не нужно.
+5. В Rant нажми название модели сверху → <strong>Добавить модель</strong> → <strong>Ollama</strong>.
+6. Адрес: <code>http://127.0.0.1:11434/v1</code>. Обычная локальная Ollama не требует API-ключ.
+7. Нажми <strong>Получить список с сервера</strong>, выбери точное название установленной модели.
+8. Нажми <strong>Сохранить и проверить</strong>, затем <strong>Готово</strong>, отправь сообщение.</p>
+<p>Пресет использует формат <strong>Chat Completions</strong>. Он совместим с <a href="https://docs.ollama.com/api/openai-compatibility">Ollama OpenAI API</a>. Rant не устанавливает Ollama и её модели вместо тебя.</p>
+<p>Для агентных задач модель должна поддерживать вызов инструментов. Успешный короткий ответ не доказывает, что она справится с браузером или редактированием файлов. Для простого чата сначала оставь автоматическое сжатие выключенным — так меньше дополнительных запросов.</p>
+<p>Размер контекста на стороне Ollama настраивается отдельно. Поле контекста в Rant не меняет настройки движка. Например, файл <code>Modelfile</code>:</p>
+<pre><code class="language-text">FROM qwen3:4b
+PARAMETER num_ctx 8192
+</code></pre>
+<pre><code class="language-bash">ollama create rant-qwen -f Modelfile
+</code></pre>
+<p>Затем выбери <code>rant-qwen</code> в Rant. Больший контекст расходует больше памяти. <a href="https://docs.ollama.com/api/openai-compatibility">Официальная документация</a>.</p>
+<h3>Вариант B. LM Studio</h3>
+<ol>
+<li>Установи <a href="https://lmstudio.ai/">LM Studio</a>, скачай подходящую модель внутри приложения.</li>
+<li>Загрузи модель. Открой <strong>Developer</strong> и запусти локальный сервер (<strong>Start Server</strong>).</li>
+<li>В Rant: название модели → <strong>Добавить модель</strong> → <strong>LM Studio</strong>.</li>
+<li>Оставь <code>http://127.0.0.1:1234/v1</code>, если в LM Studio не указан другой порт.</li>
+<li>Получи список моделей, выбери нужную и сохрани. Ключ не нужен, если ты отдельно не включил авторизацию сервера.</li>
+</ol>
+<p><a href="https://lmstudio.ai/docs/developer/core/server">Инструкция локального сервера LM Studio</a>.</p>
+<h3>Вариант C. Встроенная Qwen 3.5 9B через MLX</h3>
+<p>Только <strong>Mac с Apple Silicon</strong>. Ollama и LM Studio для этого варианта не нужны.</p>
+<p>Из корня Rant, после первого запуска:</p>
+<pre><code class="language-bash">.venv/bin/pip install -r requirements-mlx.txt
+</code></pre>
+<p>Если весов ещё нет, явно запусти скачивание нескольких гигабайт:</p>
+<pre><code class="language-bash">.venv/bin/python scripts/setup_model.py --download
+</code></pre>
+<p>По умолчанию файлы окажутся в <code>~/Models/Qwen3.5-9B-4bit</code>. Используется <code>mlx-community/Qwen3.5-9B-4bit</code>. Проверь <a href="https://huggingface.co/mlx-community/Qwen3.5-9B-4bit">карточку и лицензию модели</a> перед использованием.</p>
+<p>Если правильные <strong>MLX-веса</strong> уже скачаны, повторно скачивать их не нужно:</p>
+<pre><code class="language-bash">.venv/bin/python scripts/setup_model.py --path &quot;$HOME/Models/Qwen3.5-9B-4bit&quot;
+</code></pre>
+<p>Чтобы заменить существующую настройку, добавь <code>--replace</code>. Это меняет только путь модели, не удаляет старые веса.</p>
+<p>Альтернатива — вручную создать <code>local-assistant/model-9b.json</code>:</p>
+<pre><code class="language-json">{&quot;path&quot;: &quot;/полный/путь/к/Qwen3.5-9B-4bit&quot;}
+</code></pre>
+<p>Нужна папка модели с <code>config.json</code>, файлами токенизатора и всеми <code>.safetensors</code>. GGUF из Ollama/LM Studio не подходит этому MLX-загрузчику.</p>
+<p>Перезапусти Rant, выбери <strong>Qwen3.5-9B · MLX 4-bit</strong> и напиши сообщение. Первый запрос загружает модель; затем статус станет <strong>Qwen в памяти</strong>. В настройках есть <strong>Выгрузить Qwen из памяти</strong>. Встроенный режим в этом выпуске работает с текстом; картинки передавай модели с поддержкой зрения через подходящий API.</p>
+<p><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a> — отдельный движок с собственной документацией. Rant не обучает модель и не включает веса в репозиторий.</p>
+<h3>Вариант D. API со своим ключом</h3>
+<ol>
+<li>Получи ключ у выбранного провайдера. Подписка на чат-сайт и доступ к API могут оплачиваться отдельно.</li>
+<li>В Rant открой <strong>Добавить модель</strong> и выбери провайдера или <strong>Другой сервис</strong>.</li>
+<li>Укажи базовый адрес API, например адрес до <code>/v1</code>, а не полный путь <code>/chat/completions</code>.</li>
+<li>Вставь ключ, получи список моделей или введи точный ID из кабинета провайдера.</li>
+<li>Проверь формат в дополнительных настройках: <strong>Chat Completions</strong>, <strong>Responses</strong> или <strong>Anthropic Messages</strong>. Не все провайдеры поддерживают все три.</li>
+<li><strong>Сохранить и проверить</strong> отправляет реальный короткий запрос — он может тарифицироваться. <strong>Сохранить</strong> только записывает подключение.</li>
+</ol>
+<p>Ключ хранится локально, переживает перезапуск и не отображается обратно в поле. Удалить сохранённый ключ можно в настройках подключения. Изменение адреса на другой сервер не переносит прежний ключ автоматически.</p>
+<p></p>
+<h2>4. Подключи Chrome</h2>
+<p>Расширение не требуется для обычного чата. Safari может показывать интерфейс Rant, но агент управляет <strong>Chrome</strong>.</p>
+<ol>
+<li>Запусти Rant. При старте он создаст персональный <code>sever-ide/chrome-extension/config.js</code>.</li>
+<li>В Chrome открой <code>chrome://extensions</code> и включи режим разработчика.</li>
+<li>Нажми <strong>Загрузить распакованное расширение</strong> и выбери <strong><code>sever-ide/chrome-extension</code> именно этой копии Rant</strong>.</li>
+<li>Закрепи расширение <strong>Rant Agent Local — браузер</strong>, открой его и нажми <strong>Разрешить Chrome</strong>. Chrome покажет запрашиваемые разрешения.</li>
+<li>В Rant открой <strong>Настройки и возможности → Доступы</strong>, включи браузер и сохрани разрешения. Под полем сообщения выбери режим браузера.</li>
+<li>Начни с чтения обычной публичной HTTPS-страницы. Вход на сайты, пароли и коды вводи сам в Chrome.</li>
+</ol>
+<p>Мост выбирает свободные порты и сохраняет их в <code>.local/browser-ports.json</code>. Разные копии Rant имеют разные токены и настройки. Не заменяй расширение, используемое другим приложением: для этой копии загружай её собственную папку. После обновления кода нажми ↻ на её карточке в <code>chrome://extensions</code>.</p>
+<p>Не публикуй <code>config.js</code>, токен расширения или всю <code>.local</code>. Ошибка «мост запущен, Chrome не подключён» обычно означает, что расширение ещё не загружено, не обновлено или относится к другой папке.</p>
+<h2>5. Проекты и файлы</h2>
+<p>Нажми <strong>+</strong> рядом с проектами и создай пространство. Новые папки создаются в <code>sever-ide/projects</code>; личные чаты могут иметь внутренние папки в <code>.local/workspaces</code>. Включи <strong>Файлы и код</strong>, чтобы открыть редактор, историю изменений и предпросмотр.</p>
+<p>Приложение умеет ограниченные правки текстовых файлов. Это не терминал: оно не запускает произвольные команды, тесты твоего проекта или деплой. Предпросмотр предназначен для статических HTML/CSS/JS. Ограничения текущего файлового инструмента: до 24 КБ на файл и 100 индексируемых файлов.</p>
+<h2>6. Изображения и видео</h2>
+<p>На стартовом экране нажми <strong>Создать картинку</strong> или <strong>Создать видео</strong>. Эти кнопки доступны также в боковом меню. Сначала добавь отдельное медиа-подключение. <a href="https://github.com/darkdi/rant-agent/blob/main/docs/MEDIA.md">Полная инструкция студии</a>.</p>
+<h2>7. Обновления и резервная копия</h2>
+<p>Останови Rant через Ctrl+C. Сохрани копию <code>sever-ide/.local</code>, <code>sever-ide/projects</code>, <code>local-assistant/model-9b.json</code> и своих внешних проектов в личное защищённое место. Архив содержит ключи и личные данные — не прикладывай его к GitHub issues.</p>
+<pre><code class="language-bash">git pull --ff-only
+./start.sh
+</code></pre>
+<p>Если менял исходники, сначала сохрани свои изменения. <code>--ff-only</code> не перепишет их и остановится при конфликте. Лаунчер заметит изменения зависимостей и интерфейса; для принудительной пересборки используй <code>./start.sh --rebuild</code>.</p>
+<h2>8. Если что-то не работает</h2>
+<table><thead><tr><th>Симптом</th><th>Что проверить</th></tr></thead><tbody><tr><td><code>command not found</code></td><td>Python/Node/Git установлены и доступны в новом Терминале</td></tr><tr><td>Нельзя создать <code>.venv</code></td><td>На Linux установлен пакет <code>python3-venv</code>; текущая папка доступна для записи</td></tr><tr><td>Порт 4311/4312 занят</td><td><code>./start.sh --port 4321 --preview-port 4322</code>; открой адрес, напечатанный в Терминале</td></tr><tr><td><code>Permission denied</code> у start.sh</td><td><code>chmod +x start.sh Start-Rant.command</code></td></tr><tr><td>Qwen требует настройки</td><td>Установи requirements-mlx.txt в <strong>то же</strong> <code>.venv</code>, проверь путь и формат весов</td></tr><tr><td>Модель очень медленная / завершается</td><td>Закрой тяжёлые приложения, сократи контекст или выбери меньшую модель; ошибки загрузки видны в настройках</td></tr><tr><td>Ollama/LM Studio не отвечает</td><td>Проверь сервер вне Rant, порт и список установленных моделей</td></tr><tr><td>HTTP 401/403</td><td>Ключ или права доступа провайдера; локальный сервер может иметь собственную авторизацию</td></tr><tr><td>HTTP 404</td><td>Неверный базовый адрес, формат API или точное имя модели</td></tr><tr><td>Браузер не подключён</td><td>Проверь путь расширения, ↻, разрешения и то, что Chrome открыт</td></tr><tr><td>Медиа требует проверки</td><td>Проверь ID в сервисе; запрос не повторялся автоматически. Провайдер мог принять и оплатить его до разрыва связи</td></tr><tr><td>Старые цвета/логотип</td><td>Обнови вкладку Cmd+R / Ctrl+R после сборки</td></tr></tbody></table>
+<p>В bug report укажи ОС, версии Python/Node, выбранный движок, шаги и текст ошибки. Удали ключи, личные пути и содержимое переписок. Это ранняя альфа: не все модели, сайты и системы проверены.</p></section><section id="media"><h1>Изображения и видео / Media generation</h1>
+<p>Студия открывается кнопками <strong>Создать картинку</strong> и <strong>Создать видео</strong> на стартовом экране либо <strong>Картинки / Видео</strong> в меню. Она работает отдельно от чат-модели. Qwen, Ollama и обычный Chat Completions API сами по себе не превращаются в генератор изображений или видео.</p>
+<h2>Как устроена студия</h2>
+<ol>
+<li>Выбери нужный тип результата.</li>
+<li>Добавь подключение: название, адаптер, адрес, модель, свой ключ при необходимости.</li>
+<li>Сохрани подключение. Это не запускает генерацию и не проверяет платный API.</li>
+<li>Опиши результат и нажми <strong>Создать</strong>. Запрос уходит выбранному движку.</li>
+<li>Окно можно закрыть. Пока приложение Rant запущено, задача продолжится в фоне. Результат появится в галерее; его можно посмотреть и скачать.</li>
+</ol>
+<p>Сейчас одна генерация выполняется за раз. Сохраняется первый подходящий выход модели: PNG для картинки, MP4/WebM для видео. Максимум 100 МБ на результат, 32 мегапикселя для изображения, 60 работ и примерно 1 ГБ галереи. Файлы лежат в <code>sever-ide/.local/media</code>. Видеоформат зависит от выбранной модели/workflow; монтаж и звук не добавляются автоматически.</p>
+<h2>Images API — картинки по API</h2>
+<p>Выбери <strong>Images API · OpenAI-совместимый</strong>. Укажи базовый URL до <code>/v1</code> или аналогичного API-префикса, ключ и точное имя модели из документации провайдера. Rant отправляет JSON в <code>/images/generations</code>: <code>model</code>, <code>prompt</code>, <code>n: 1</code>, плюс твои дополнительные параметры.</p>
+<p>Ответ должен содержать <code>data[0].b64_json</code> либо <code>data[0].url</code>. Картинка проверяется и сохраняется локально. Поддерживается также loopback-сервер с этим API. Для собственного формата нужен новый адаптер, а не просто изменение адреса.</p>
+<p>В <strong>Параметрах модели</strong> можно задать, например:</p>
+<pre><code class="language-json">{&quot;size&quot;: &quot;1024x1024&quot;}
+</code></pre>
+<p>Добавляй <code>quality</code>, <code>response_format</code> и другие поля только если конкретный сервис их поддерживает. Единого универсального списка моделей нет. Не вставляй ключи в JSON параметров — для них есть отдельное поле.</p>
+<h2>Replicate — картинки и видео по API</h2>
+<p>Нужен свой аккаунт, платёжные настройки и API-токен <a href="https://replicate.com/">Replicate</a>. В зависимости от выбранной модели результатом будет изображение или видео.</p>
+<ul>
+<li>Адаптер: <strong>Replicate</strong>.</li>
+<li>Адрес: <code>https://api.replicate.com/v1</code>.</li>
+<li>Модель: <code>owner/model</code> для официального endpoint модели либо <code>owner/model:version</code> для версии prediction API.</li>
+<li>Ключ: свой API-токен.</li>
+<li>JSON параметров: поля <code>input</code> из документации выбранной модели, кроме <code>prompt</code>, который берётся из описания Rant.</li>
+</ul>
+<p>Пример формы параметров, только если модель поддерживает эти поля:</p>
+<pre><code class="language-json">{&quot;aspect_ratio&quot;: &quot;16:9&quot;, &quot;duration&quot;: 5}
+</code></pre>
+<p>Rant отправляет prediction один раз, сохраняет его ID и опрашивает статус до 20 минут. Успешный выход должен быть URL файла либо списком URL; первый файл скачивается без передачи токена на сервер хранения. Схема модели и доступность её версии — ответственность конкретного endpoint. <a href="https://replicate.com/docs/reference/http/">Официальный API Replicate</a>.</p>
+<h2>ComfyUI — локальные изображения и видео</h2>
+<p>Нужен отдельно установленный <a href="https://www.comfy.org/download">ComfyUI</a> и рабочая схема с нужными весами. Rant не устанавливает CUDA, видеомодели или custom nodes автоматически. Требования зависят от модели и GPU; наличие текстовой Qwen не означает, что памяти хватит для видео.</p>
+<ol>
+<li>Запусти ComfyUI на loopback, обычно <code>http://127.0.0.1:8188</code>.</li>
+<li>Сначала получи правильный результат в самом ComfyUI.</li>
+<li>Экспортируй эту схему в <strong>API-формате</strong>. Включение соответствующего режима зависит от версии интерфейса ComfyUI.</li>
+<li>В JSON замени положительный текстовый промпт на <code>__PROMPT__</code>. Отрицательный промпт и остальные параметры оставь из проверенной схемы.</li>
+<li>В Rant выбери <strong>ComfyUI</strong>, укажи адрес и вставь JSON.</li>
+<li>Для картинки нужен сохранённый PNG/JPEG/WebP, для видео — MP4/WebM. Rant читает результаты узлов <code>images</code>, <code>gifs</code> или <code>videos</code> через историю задачи и <code>/view</code>.</li>
+</ol>
+<p>Поддерживаются только локальные адреса ComfyUI. Схема — исполняемый граф на твоём сервере: подключай доверенные узлы. Некоторые custom/partner nodes обращаются во внешние платные API; это не полностью офлайн-генерация. <a href="https://docs.comfy.org/development/comfyui-server/comms_routes">Документация маршрутов ComfyUI</a>.</p>
+<h2>Ошибки и оплата</h2>
+<p>Rant не продаёт кредиты и не знает итоговую цену твоего сервиса. Нажатие <strong>Создать</strong> может запустить платную генерацию у выбранного API-провайдера.</p>
+<p>Если связь оборвалась, запрос <strong>не отправляется повторно автоматически</strong>. Статус «Нужно проверить результат» не означает, что провайдер ничего не создал или не списал деньги. Проверь сохранённый ID в сервисе перед повтором. Перезапуск Rant помечает незавершённые задачи как требующие проверки; автоматического повторного запуска нет.</p>
+<p>Если ComfyUI не вернул файл, проверь, что схема завершилась и содержит узел сохранения нужного формата. Если API вернул HTTP-ошибку, сверь адрес, модель, ключ и параметры.</p>
+<h2>Что проверено в первом выпуске</h2>
+<p>Проверяются контрактные тесты адаптеров, сохранение результатов, исключение ключей из публичного состояния, отсутствие повторной отправки и обработка ошибок. Реальная генерация через платные медиа-API и через установленный ComfyUI не включается в автоматические тесты: она требует твоего ключа, модели/весов и может стоить денег. Не считай поддержку адаптера гарантией совместимости любой модели.</p>
+<h2>English summary</h2>
+<p>Use a separate media connection. Images API accepts <code>POST /images/generations</code>; Replicate accepts model predictions or versioned predictions; local ComfyUI accepts an API workflow containing <code>__PROMPT__</code>. The app submits once, polls asynchronous work, and stores the first supported image/video locally. Keys are never forwarded to output storage URLs. No paid media generation or real ComfyUI execution is part of the offline test suite.</p></section></html>

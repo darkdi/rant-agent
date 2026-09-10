@@ -1,0 +1,3 @@
+# Optional local Qwen runtime for Apple Silicon.
+mlx==0.32.2
+mlx-lm==0.31.3
